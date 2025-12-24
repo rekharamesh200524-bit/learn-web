@@ -1,0 +1,232 @@
+/* =========================
+   GLOBAL RESET
+========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* =========================
+   BODY & BASE
+========================= */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #f4f6f9, #e9eef5);
+    color: #333;
+    line-height: 1.6;
+}
+
+/* =========================
+   PAGE CONTAINER
+========================= */
+.container {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 25px;
+}
+
+/* =========================
+   CENTER PAGE (LOGIN / REGISTER)
+========================= */
+.center-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================
+   HEADINGS
+========================= */
+h1, h2, h3, h4 {
+    margin-bottom: 18px;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+p {
+    margin-bottom: 12px;
+    color: #4b5563;
+}
+
+/* =========================
+   LINKS
+========================= */
+a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+button,
+.btn {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+button:hover,
+.btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+}
+
+/* =========================
+   FORMS
+========================= */
+form {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* =========================
+   TABLES
+========================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+table th {
+    background: #2563eb;
+    color: #ffffff;
+    padding: 12px;
+    text-align: left;
+}
+
+table td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+table tr:hover {
+    background: #f1f5f9;
+}
+
+/* =========================
+   CARDS (COURSES / FILES)
+========================= */
+.card,
+.course-box {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover,
+.course-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.12);
+}
+
+/* =========================
+   STATUS TEXT
+========================= */
+.status-locked {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.status-progress {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.status-completed {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+/* =========================
+   ALERTS / MESSAGES
+========================= */
+.success {
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border-left: 5px solid #10b981;
+}
+
+.error {
+    background: #fef2f2;
+    color: #7f1d1d;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border-left: 5px solid #ef4444;
+}
+
+/* =========================
+   MEDIA
+========================= */
+img,
+video {
+    max-width: 100%;
+    border-radius: 6px;
+}
+
+/* =========================
+   HR
+========================= */
+hr {
+    margin: 25px 0;
+    border: none;
+    border-top: 1px solid #e5e7eb;
+}
