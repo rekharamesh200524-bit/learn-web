@@ -223,11 +223,87 @@ class Admin extends MX_Controller {
         $this->db->where('course_id', $course_id)->delete('courses');
         redirect('admin/manage_courses');
     }
-    public function upload()
+   public function upload()
 {
-    $data['users'] = $this->Admin_model->get_users();
-    $data['departments'] = $this->Admin_model->get_departments();
+    $role = $this->session->userdata('role');
+    $department = $this->session->userdata('department');
+
+    if ($role === 'master_admin') {
+
+        // MASTER ADMIN → everything allowed
+        $data['allow_all'] = true;
+        $data['departments'] = $this->Admin_model->get_departments();
+        $data['users'] = $this->Admin_model->get_users();
+
+    } else {
+
+        // DEPT HEAD → STRICT RULES
+        $data['allow_all'] = false;
+        $data['departments'] = [$department]; // ONLY OWN DEPARTMENT
+        $data['users'] = $this->Admin_model->get_users_by_department($department);
+    }
+
     $this->load->view('upload', $data);
 }
+public function edit_course($course_id)
+{
+    $data['course'] = $this->db
+        ->where('course_id', $course_id)
+        ->get('courses')
+        ->row();
+
+    if (!$data['course']) {
+        show_404();
+    }
+
+    $data['lessons'] = $this->db
+        ->where('course_id', $course_id)
+        ->order_by('lesson_id', 'ASC')
+        ->get('course_lessons')
+        ->result();
+
+    $this->load->view('edit_course', $data);
+}
+public function edit_lesson($lesson_id)
+{
+    $data['lesson'] = $this->db
+        ->where('lesson_id', $lesson_id)
+        ->get('course_lessons')
+        ->row();
+
+    if (!$data['lesson']) {
+        show_404();
+    }
+
+    $this->load->view('edit_lesson', $data);
+}
+public function add_lesson($course_id)
+{
+    $data['course_id'] = $course_id;
+
+    // Get next day number
+    $last = $this->db
+        ->where('course_id', $course_id)
+        ->order_by('day_no', 'DESC')
+        ->get('course_lessons')
+        ->row();
+
+    $data['next_day_no'] = $last ? $last->day_no + 1 : 1;
+
+    $this->load->view('add_lesson', $data);
+}
+public function manage_mcq($course_id)
+{
+    $data['course_id'] = $course_id;
+
+    $data['questions'] = $this->db
+        ->where('course_id', $course_id)
+        ->get('mcq_questions')
+        ->result();
+
+    $this->load->view('manage_mcq', $data);
+}
+
+
 
 }

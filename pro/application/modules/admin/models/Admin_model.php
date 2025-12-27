@@ -3,8 +3,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Admin_model extends CI_Model {
 
-    
-
     public function get_pending_requests()
     {
         return $this->db
@@ -29,27 +27,32 @@ class Admin_model extends CI_Model {
             ->update('user_requests', ['status' => $status]);
     }
 
-    
-
     public function insert_user($data)
     {
         return $this->db->insert('users', $data);
     }
 
+    // ✅ ALL USERS (MASTER ADMIN)
     public function get_users()
-{
-    return $this->db
-        ->where('status', 1)
-        ->get('users')
-        ->result();
-}
+    {
+        return $this->db
+            ->select('user_id, user_name, department')
+            ->where('status', 1)
+            ->get('users')
+            ->result();
+    }
 
-    
+    // ✅ USERS BY DEPARTMENT (DEPT HEAD)
+    public function get_users_by_department($department)
+    {
+        return $this->db
+            ->where('department', $department)
+            ->where('status', 1)
+            ->get('users')
+            ->result();
+    }
 
-    
-
-   
-
+    // ✅ FILE UPLOAD
     public function upload_file($data)
     {
         return $this->db->insert('uploads', $data);
@@ -62,14 +65,15 @@ class Admin_model extends CI_Model {
             ->get('uploads')
             ->result();
     }
-    public function get_departments()
-{
-    return $this->db
-        ->select('department')
-        ->where('department IS NOT NULL', null, false)
-        ->group_by('department')
-        ->get('users')
-        ->result();
-}
 
+    // ✅ DEPARTMENTS
+    public function get_departments()
+    {
+        return $this->db
+            ->select('department')
+            ->where('department IS NOT NULL', null, false)
+            ->group_by('department')
+            ->get('users')
+            ->result();
+    }
 }

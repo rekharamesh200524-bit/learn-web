@@ -1,36 +1,49 @@
-<h2>Upload File / Video</h2><a href="<?= base_url('index.php/admin/dashboard') ?>">⬅ Back</a>
+<h2>Upload File / Video</h2>
+<a href="<?= base_url('index.php/admin/dashboard') ?>">⬅ Back</a>
 
-<form method="post" enctype="multipart/form-data" action="<?php echo base_url('index.php/Admin/do_upload'); ?>">
+<form method="post" enctype="multipart/form-data"
+      action="<?= base_url('index.php/admin/do_upload'); ?>">
 
     <label>Upload Type:</label><br>
-    <input type="radio" name="upload_type" value="all" required> All Users <br>
-    <input type="radio" name="upload_type" value="department"> Department <br>
-    <input type="radio" name="upload_type" value="individual"> Individual <br><br>
 
-    
+    <?php if ($allow_all): ?>
+        <input type="radio" name="upload_type" value="all" required>
+        All Users <br>
+    <?php endif; ?>
+
+    <input type="radio" name="upload_type" value="department" required>
+    My Department <br>
+
+    <input type="radio" name="upload_type" value="individual" required>
+    Individual User <br><br>
+
+    <!-- ================= DEPARTMENT ================= -->
     <div id="department_div" style="display:none;">
-        <label>Select Department:</label><br>
+        <label>Department:</label><br>
         <select name="department">
-            <option value="">--Select Department--</option>
-            <?php foreach($departments as $dept): ?>
-                <option value="<?php echo $dept->department; ?>">
-                    <?php echo $dept->department; ?>
-                </option>
+            <?php foreach ($departments as $dept): ?>
+                <?php if (is_object($dept)): ?>
+                    <option value="<?= $dept->department ?>">
+                        <?= $dept->department ?>
+                    </option>
+                <?php else: ?>
+                    <option value="<?= $dept ?>">
+                        <?= $dept ?>
+                    </option>
+                <?php endif; ?>
             <?php endforeach; ?>
         </select>
     </div><br>
 
-
-
-    
+    <!-- ================= INDIVIDUAL ================= -->
     <div id="individual_div" style="display:none;">
         <label>Select User:</label><br>
         <select name="user_id">
             <option value="">--Select User--</option>
-            <?php foreach($users as $user): ?>
-                <option value="<?php echo $user->user_id; ?>">
-   <?php echo $user->user_name; ?> (ID: <?php echo $user->user_id; ?>)
-</option>
+            <?php foreach ($users as $user): ?>
+                <option value="<?= $user->user_id ?>">
+                    <?= $user->user_name ?> (<?= $user->department ?>)
+                </option>
             <?php endforeach; ?>
         </select>
     </div><br>
@@ -41,19 +54,20 @@
     <button type="submit">Upload</button>
 </form>
 
-
 <script>
-
 const radios = document.getElementsByName('upload_type');
+
 radios.forEach(radio => {
-    radio.addEventListener('change', function() {
-        if(this.value === 'department'){
+    radio.addEventListener('change', function () {
+        if (this.value === 'department') {
             document.getElementById('department_div').style.display = 'block';
             document.getElementById('individual_div').style.display = 'none';
-        } else if(this.value === 'individual'){
+        }
+        else if (this.value === 'individual') {
             document.getElementById('department_div').style.display = 'none';
             document.getElementById('individual_div').style.display = 'block';
-        } else {
+        }
+        else {
             document.getElementById('department_div').style.display = 'none';
             document.getElementById('individual_div').style.display = 'none';
         }
