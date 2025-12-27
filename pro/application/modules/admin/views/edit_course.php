@@ -8,11 +8,11 @@
 
 <div class="container">
 
-    <!-- ================= HEADER ================= -->
+    
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h2>Edit Course: <?= $course->course_name ?></h2>
 
-        <!-- ACTION BUTTONS (TOP RIGHT) -->
+    
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <a href="<?= base_url('index.php/admin/add_lesson/'.$course->course_id) ?>" class="btn">
                 ➕ Add Lesson
@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <!-- ================= LESSONS ================= -->
+   
     <div class="section">
         <h3>Lessons</h3>
 

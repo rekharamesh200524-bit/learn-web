@@ -7,9 +7,9 @@ class Admin extends MX_Controller {
     {
         parent::__construct();
 
-        // Load helpers, libraries, database
         $this->load->helper('url');
         $this->load->library('session');
+        $this->load->library('email'); // ✅ EMAIL LIBRARY
         $this->load->database();
         $this->load->model('Admin_model');
 
@@ -18,25 +18,78 @@ class Admin extends MX_Controller {
             redirect('auth/login');
         }
 
-        // 🔐 Admin role check
-        if ($this->session->userdata('role') !== 'admin') {
+        // 🔐 Allow only master admin & department head
+        if (
+            $this->session->userdata('role') !== 'master_admin' &&
+            $this->session->userdata('role') !== 'dept_head'
+        ) {
             redirect('user/dashboard');
         }
     }
 
-    // ================= ADMIN DASHBOARD =================
-    // Shows user approval requests
+    /* ================= DASHBOARD ================= */
+
     public function dashboard()
     {
-        $data['requests'] = $this->db
-            ->order_by('request_id', 'DESC')
-            ->get('user_requests')
-            ->result();
+        $role    = $this->session->userdata('role');
+        $user_id = $this->session->userdata('user_id');
+
+        /* ===== MASTER ADMIN DASHBOARD ===== */
+        if ($role === 'master_admin') {
+
+            // COUNTS
+            $data['total_users'] = $this->db->count_all('users');
+
+            $data['active_users'] = $this->db
+                ->where('status', 1)
+                ->count_all_results('users');
+
+            $data['inactive_users'] = $this->db
+                ->where('status', 0)
+                ->count_all_results('users');
+
+            $data['today_logins'] = $this->db
+                ->where('DATE(last_login)', date('Y-m-d'))
+                ->count_all_results('users');
+
+            // ALL USERS LIST
+            $data['all_users'] = $this->db
+                ->select('user_name, email, role, department, status, last_login')
+                ->get('users')
+                ->result();
+
+            // ROLE CHART DATA (❌ EXCLUDE MASTER ADMIN)
+            $data['role_counts'] = $this->db
+                ->select('role, COUNT(*) as total')
+                ->where('role !=', 'master_admin')
+                ->group_by('role')
+                ->get('users')
+                ->result();
+
+            // REQUESTS ONLY FOR MASTER APPROVAL (DEPT HEADS)
+            $data['requests'] = $this->db
+                ->where('approve_by', 'master')
+                ->order_by('request_id', 'DESC')
+                ->get('user_requests')
+                ->result();
+        }
+
+        /* ===== DEPARTMENT HEAD DASHBOARD ===== */
+        elseif ($role === 'dept_head') {
+
+            $data['requests'] = $this->db
+                ->where('approve_by', 'department')
+                ->where('department_head_id', $user_id)
+                ->order_by('request_id', 'DESC')
+                ->get('user_requests')
+                ->result();
+        }
 
         $this->load->view('dashboard', $data);
     }
 
-    // ================= APPROVE USER =================
+    /* ================= APPROVE REQUEST ================= */
+
     public function approve($id)
     {
         $request = $this->db
@@ -48,26 +101,104 @@ class Admin extends MX_Controller {
             return;
         }
 
-        // Insert approved user into users table
+        $role = $this->session->userdata('role');
+
+        // 🔐 SECURITY CHECK
+        if ($request->approve_by === 'master' && $role !== 'master_admin') {
+            show_error('Not authorized');
+        }
+
+        if ($request->approve_by === 'department' && $role !== 'dept_head') {
+            show_error('Not authorized');
+        }
+
+        /* ===== INTERN DATE LOGIC ===== */
+        $intern_duration = NULL;
+        $start_date = NULL;
+        $end_date = NULL;
+
+        if ($request->role === 'intern') {
+
+            $intern_duration = $request->intern_duration;
+            $start_date = date('Y-m-d');
+
+            switch ($intern_duration) {
+                case '7_days':
+                    $end_date = date('Y-m-d', strtotime('+7 days'));
+                    break;
+                case '1_month':
+                    $end_date = date('Y-m-d', strtotime('+1 month'));
+                    break;
+                case '2_months':
+                    $end_date = date('Y-m-d', strtotime('+2 months'));
+                    break;
+                case '3_months':
+                    $end_date = date('Y-m-d', strtotime('+3 months'));
+                    break;
+                case '6_months':
+                    $end_date = date('Y-m-d', strtotime('+6 months'));
+                    break;
+            }
+        }
+
+        // ✅ INSERT USER
         $this->db->insert('users', [
-            'user_name'  => $request->user_name,
-            'email'      => $request->email,
-            'mobile'     => $request->mobile,
-            'department' => $request->department,
-            'password'   => $request->password, // already md5
-            'role'       => 'user',
-            'status'     => 1
+            'user_name'         => $request->user_name,
+            'email'             => $request->email,
+            'mobile'            => $request->mobile,
+            'department'        => $request->department,
+            'password'          => $request->password,
+            'role'              => $request->role,
+            'intern_duration'   => $intern_duration,
+            'intern_start_date' => $start_date,
+            'intern_end_date'   => $end_date,
+            'status'            => 1
         ]);
 
-        // Update request status
+        // ✅ UPDATE REQUEST STATUS
         $this->db
             ->where('request_id', $id)
             ->update('user_requests', ['status' => 'Approved']);
 
+        /* ================= SEND APPROVAL EMAIL ================= */
+
+        $this->email->from('yourgmail@gmail.com', 'Your Application');
+        $this->email->to($request->email);
+        $this->email->subject('Registration Approved');
+
+        $message = "
+            <h3>Hello {$request->user_name},</h3>
+
+            <p>Your registration has been
+            <b style='color:green;'>approved</b>.</p>
+
+            <p>You can now login using the link below:</p>
+
+            <p>
+                <a href='".base_url('index.php/auth/login')."'
+                   style='padding:10px 15px;
+                          background:#2563eb;
+                          color:#ffffff;
+                          text-decoration:none;
+                          border-radius:5px;'>
+                    Login Now
+                </a>
+            </p>
+
+            <p>Regards,<br>Your Team</p>
+        ";
+
+        $this->email->message($message);
+
+        if (!$this->email->send()) {
+            log_message('error', $this->email->print_debugger());
+        }
+
         redirect('admin/dashboard');
     }
 
-    // ================= REJECT USER =================
+    /* ================= REJECT REQUEST ================= */
+
     public function reject($id)
     {
         $this->db
@@ -77,237 +208,70 @@ class Admin extends MX_Controller {
         redirect('admin/dashboard');
     }
 
-    // ================= FILE UPLOAD PAGE =================
-   public function upload()
-{
-    $data['users'] = $this->Admin_model->get_users();
-     $data['departments'] = $this->Admin_model->get_departments();
-    $this->load->view('upload', $data);
-}
+    /* ================= FILE UPLOAD ================= */
 
+    public function upload()
+    {
+        $data['users'] = $this->Admin_model->get_users();
+        $data['departments'] = $this->Admin_model->get_departments();
+        $this->load->view('upload', $data);
+    }
 
-
-    // ================= HANDLE FILE UPLOAD =================
     public function do_upload()
     {
         if (!isset($_FILES['file']) || $_FILES['file']['error'] != 0) {
-            $this->session->set_flashdata(
-                'error',
-                'No file selected or upload error'
-            );
+            $this->session->set_flashdata('error', 'Upload error');
             redirect('admin/upload');
             return;
         }
 
-        // Upload directory
         $upload_path = './uploads/';
         if (!is_dir($upload_path)) {
             mkdir($upload_path, 0777, true);
         }
 
-        $file_name = time() . '_' . $_FILES['file']['name'];
-        $file_tmp  = $_FILES['file']['tmp_name'];
+        $file_name = time().'_'.$_FILES['file']['name'];
+        move_uploaded_file($_FILES['file']['tmp_name'], $upload_path.$file_name);
 
-        if (!move_uploaded_file($file_tmp, $upload_path . $file_name)) {
-            $this->session->set_flashdata(
-                'error',
-                'File upload failed'
-            );
-            redirect('admin/upload');
-            return;
-        }
-
-        // Prepare DB data
-        $data = [
+        $this->Admin_model->upload_file([
             'file_name'   => $file_name,
-            'file_path'   => 'uploads/' . $file_name,
+            'file_path'   => 'uploads/'.$file_name,
             'upload_type' => $this->input->post('upload_type'),
-            'department'  => $this->input->post('department') ?: NULL,
-            'user_id'     => $this->input->post('user_id') ?: NULL
-        ];
+            'department'  => $this->input->post('department'),
+            'user_id'     => $this->input->post('user_id')
+        ]);
 
-        // Save upload record
-        $this->Admin_model->upload_file($data);
-
-        $this->session->set_flashdata(
-            'success',
-            'File uploaded and saved successfully!'
-        );
-
+        $this->session->set_flashdata('success', 'Upload successful');
         redirect('admin/upload');
     }
+
+    /* ================= COURSES ================= */
+
     public function manage_courses()
-{
-    $data['courses'] = $this->db->get('courses')->result();
-    $this->load->view('manage_courses', $data);
-}
-public function edit_course($course_id)
-{
-    $data['course'] = $this->db
-        ->where('course_id', $course_id)
-        ->get('courses')
-        ->row();
-
-    $data['lessons'] = $this->db
-        ->where('course_id', $course_id)
-        ->order_by('day_no')
-        ->get('course_lessons')
-        ->result();
-
-    $this->load->view('edit_course', $data);
-}
-public function edit_lesson($lesson_id)
-{
-    // Get lesson
-    $data['lesson'] = $this->db
-        ->where('lesson_id', $lesson_id)
-        ->get('course_lessons')
-        ->row();
-
-    if (!$data['lesson']) {
-        show_404();
+    {
+        $data['courses'] = $this->db->get('courses')->result();
+        $this->load->view('manage_courses', $data);
     }
 
-    $this->load->view('edit_lesson', $data);
-}
-public function update_lesson($lesson_id)
-{
-    $lesson = $this->db
-        ->where('lesson_id', $lesson_id)
-        ->get('course_lessons')
-        ->row();
-
-    if (!$lesson) {
-        show_404();
+    public function add_course()
+    {
+        $this->load->view('add_course');
     }
 
-    $this->db
-        ->where('lesson_id', $lesson_id)
-        ->update('course_lessons', [
-            'lesson_title'   => $this->input->post('lesson_title'),
-            'lesson_content' => $this->input->post('lesson_content')
+    public function save_course()
+    {
+        $this->db->insert('courses', [
+            'course_name' => $this->input->post('course_name'),
+            'description' => $this->input->post('description'),
+            'status' => 1
         ]);
 
-    redirect('admin/edit_course/'.$lesson->course_id);
-}
-public function add_lesson($course_id)
-{
-    $data['course_id'] = $course_id;
-
-    // Get next day number automatically
-    $last_lesson = $this->db
-        ->where('course_id', $course_id)
-        ->order_by('day_no', 'DESC')
-        ->get('course_lessons')
-        ->row();
-
-    $data['next_day_no'] = $last_lesson ? $last_lesson->day_no + 1 : 1;
-
-    $this->load->view('add_lesson', $data);
-}
-public function save_lesson($course_id)
-{
-    $this->db->insert('course_lessons', [
-        'course_id'      => $course_id,
-        'day_no'         => $this->input->post('day_no'),
-        'lesson_title'   => $this->input->post('lesson_title'),
-        'lesson_content' => $this->input->post('lesson_content'),
-        'status'         => 1
-    ]);
-
-    redirect('admin/edit_course/'.$course_id);
-}
-public function manage_mcq($course_id)
-{
-    $data['course_id'] = $course_id;
-
-    $data['questions'] = $this->db
-        ->where('course_id', $course_id)
-        ->order_by('question_id', 'ASC')
-        ->get('mcq_questions')
-        ->result();
-
-    $this->load->view('manage_mcq', $data);
-}
-public function edit_mcq($question_id)
-{
-    $data['question'] = $this->db
-        ->where('question_id', $question_id)
-        ->get('mcq_questions')
-        ->row();
-
-    if (!$data['question']) {
-        show_404();
+        redirect('admin/manage_courses');
     }
 
-    $this->load->view('edit_mcq', $data);
-}
-public function update_mcq($question_id)
-{
-    $question = $this->db
-        ->where('question_id', $question_id)
-        ->get('mcq_questions')
-        ->row();
-
-    if (!$question) {
-        show_404();
+    public function delete_course($course_id)
+    {
+        $this->db->where('course_id', $course_id)->delete('courses');
+        redirect('admin/manage_courses');
     }
-
-    $this->db
-        ->where('question_id', $question_id)
-        ->update('mcq_questions', [
-            'question'        => $this->input->post('question'),
-            'option_a'        => $this->input->post('option_a'),
-            'option_b'        => $this->input->post('option_b'),
-            'option_c'        => $this->input->post('option_c'),
-            'option_d'        => $this->input->post('option_d'),
-            'correct_option'  => $this->input->post('correct_option')
-        ]);
-
-    redirect('admin/manage_mcq/'.$question->course_id);
-}
-public function add_mcq($course_id)
-{
-    $data['course_id'] = $course_id;
-    $this->load->view('add_mcq', $data);
-}
-public function save_mcq($course_id)
-{
-    $this->db->insert('mcq_questions', [
-        'course_id'      => $course_id,
-        'question'       => $this->input->post('question'),
-        'option_a'       => $this->input->post('option_a'),
-        'option_b'       => $this->input->post('option_b'),
-        'option_c'       => $this->input->post('option_c'),
-        'option_d'       => $this->input->post('option_d'),
-        'correct_option' => $this->input->post('correct_option'),
-        'status'         => 1
-    ]);
-
-    redirect('admin/manage_mcq/'.$course_id);
-}
-public function delete_mcq($question_id)
-{
-    $question = $this->db
-        ->where('question_id', $question_id)
-        ->get('mcq_questions')
-        ->row();
-
-    if (!$question) {
-        show_404();
-    }
-
-    $course_id = $question->course_id;
-
-    $this->db
-        ->where('question_id', $question_id)
-        ->delete('mcq_questions');
-
-    redirect('admin/manage_mcq/'.$course_id);
-}
-
-
-
-
-
 }

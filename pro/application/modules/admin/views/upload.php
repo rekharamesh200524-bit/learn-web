@@ -1,4 +1,4 @@
-<h2>Upload File / Video</h2>
+<h2>Upload File / Video</h2><a href="<?= base_url('index.php/admin/dashboard') ?>">⬅ Back</a>
 
 <form method="post" enctype="multipart/form-data" action="<?php echo base_url('index.php/Admin/do_upload'); ?>">
 
@@ -7,7 +7,7 @@
     <input type="radio" name="upload_type" value="department"> Department <br>
     <input type="radio" name="upload_type" value="individual"> Individual <br><br>
 
-    <!-- Department dropdown -->
+    
     <div id="department_div" style="display:none;">
         <label>Select Department:</label><br>
         <select name="department">
@@ -22,16 +22,15 @@
 
 
 
-    <!-- Individual dropdown -->
+    
     <div id="individual_div" style="display:none;">
         <label>Select User:</label><br>
         <select name="user_id">
             <option value="">--Select User--</option>
             <?php foreach($users as $user): ?>
                 <option value="<?php echo $user->user_id; ?>">
-                   <?php echo $user->user_id; ?>
-
-                </option>
+   <?php echo $user->user_name; ?> (ID: <?php echo $user->user_id; ?>)
+</option>
             <?php endforeach; ?>
         </select>
     </div><br>
@@ -41,10 +40,10 @@
 
     <button type="submit">Upload</button>
 </form>
-<a href="<?= base_url('index.php/admin/dashboard') ?>">⬅ Back</a>
+
 
 <script>
-// Show/hide fields based on radio selection
+
 const radios = document.getElementsByName('upload_type');
 radios.forEach(radio => {
     radio.addEventListener('change', function() {

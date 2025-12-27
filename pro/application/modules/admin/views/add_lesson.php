@@ -8,7 +8,7 @@
 
 <div class="container">
 
-    <!-- ================= HEADER ================= -->
+    
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h2>Add New Lesson</h2>
 
@@ -17,7 +17,6 @@
         </a>
     </div>
 
-    <!-- ================= FORM ================= -->
     <div class="section">
 
         <form method="post"

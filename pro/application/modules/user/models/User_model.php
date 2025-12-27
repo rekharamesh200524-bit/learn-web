@@ -3,9 +3,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class User_model extends CI_Model {
 
-    // ================= COURSES =================
+   
 
-    // Get all active courses
+    
     public function get_courses()
     {
         return $this->db
@@ -15,7 +15,7 @@ class User_model extends CI_Model {
             ->result();
     }
 
-    // Get completed courses of user
+   
     public function get_completed_courses($user_id)
     {
         return $this->db
@@ -26,7 +26,7 @@ class User_model extends CI_Model {
             ->result_array();
     }
 
-    // Get in-progress course (only one allowed)
+    
     public function get_in_progress_course($user_id)
     {
         return $this->db
@@ -36,11 +36,11 @@ class User_model extends CI_Model {
             ->row();
     }
 
-    // ================= COURSE START / COMPLETE =================
+   
 
   public function start_course($user_id, $course_id)
 {
-    // Check if user already has an active course
+    
     $active = $this->db
         ->where('user_id', $user_id)
         ->where('completed', 0)
@@ -48,10 +48,10 @@ class User_model extends CI_Model {
         ->row();
 
     if ($active) {
-        return false; // another course is already in progress
+        return false; 
     }
 
-    // Start new course
+    
     return $this->db->insert('course_progress', [
         'user_id' => $user_id,
         'course_id' => $course_id,
@@ -63,7 +63,7 @@ class User_model extends CI_Model {
 
 
 
-    // Mark course as completed
+    
     public function mark_course_completed($user_id, $course_id)
     {
         return $this->db
@@ -75,9 +75,9 @@ class User_model extends CI_Model {
             ]);
     }
 
-    // ================= LESSONS =================
+    
 
-    // Get lessons of a course
+    
     public function get_lessons($course_id)
     {
         return $this->db
@@ -87,7 +87,6 @@ class User_model extends CI_Model {
             ->result();
     }
 
-    // Get single lesson
     public function get_lesson_by_id($lesson_id)
     {
         return $this->db
@@ -96,7 +95,7 @@ class User_model extends CI_Model {
             ->row();
     }
 
-    // Mark lessons completed (before MCQ)
+  
     public function mark_lessons_completed($user_id, $course_id)
     {
         return $this->db
@@ -108,7 +107,7 @@ class User_model extends CI_Model {
     }
     public function get_user_files($user_id)
 {
-    // Get logged-in user's department
+   
     $user = $this->db
         ->where('user_id', $user_id)
         ->get('users')
@@ -121,16 +120,16 @@ class User_model extends CI_Model {
     return $this->db
         ->group_start()
 
-            // Files for ALL users
+            
             ->where('upload_type', 'all')
 
-            // Files for user's department
+            
             ->or_group_start()
                 ->where('upload_type', 'department')
                 ->where('department', $user->department)
             ->group_end()
 
-            // Files for individual user
+           
             ->or_group_start()
                 ->where('upload_type', 'individual')
                 ->where('user_id', $user_id)

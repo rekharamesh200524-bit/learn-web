@@ -3,7 +3,7 @@
 <head>
     <title>Register</title>
 
-    <!-- Global CSS -->
+   
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
 </head>
 <body>
@@ -20,22 +20,63 @@
             </div>
         <?php endif; ?>
 
-        <input type="text" name="user_name" placeholder="User Name" required>
+        <input type="text"
+               name="user_name"
+               placeholder="User Name"
+               value="<?= set_value('user_name') ?>"
+               required>
 
-        <input type="email" name="email" placeholder="Email" required>
+       
+        <input type="email"
+               name="email"
+               placeholder="Email"
+               value="<?= set_value('email') ?>"
+               required>
 
-        <input type="text" name="mobile" placeholder="Mobile Number" required>
+       
+        <input type="text"
+               name="mobile"
+               placeholder="Mobile Number"
+               value="<?= set_value('mobile') ?>"
+               required>
 
         <select name="department" required>
             <option value="">Select Department</option>
-            <option value="IT">IT</option>
-            <option value="HR">HR</option>
-            <option value="Finance">Finance</option>
-            <option value="Admin">Admin</option>
+            <option value="IT" <?= set_select('department','IT') ?>>IT</option>
+            <option value="HR" <?= set_select('department','HR') ?>>HR</option>
+            <option value="Finance" <?= set_select('department','Finance') ?>>Finance</option>
         </select>
 
-        <input type="password" name="password" placeholder="Password" required>
+       
+        <input type="password"
+               name="password"
+               placeholder="Password"
+               required>
 
+      
+        <select name="role"
+                id="role"
+                required
+                onchange="toggleInternBox()">
+            <option value="">Select Role</option>
+            <option value="Employee" <?= set_select('role','Employee') ?>>Employee</option>
+            <option value="Intern" <?= set_select('role','Intern') ?>>Intern</option>
+        </select>
+
+       
+        <div id="internBox"
+             style="display:<?= (set_value('role') === 'Intern') ? 'block' : 'none'; ?>;">
+            <select name="intern_duration">
+                <option value="">Select Internship Duration</option>
+                <option value="7_days" <?= set_select('intern_duration','7_days') ?>>7 Days</option>
+                <option value="1_month" <?= set_select('intern_duration','1_month') ?>>1 Month</option>
+                <option value="2_months" <?= set_select('intern_duration','2_months') ?>>2 Months</option>
+                <option value="3_months" <?= set_select('intern_duration','3_months') ?>>3 Months</option>
+                <option value="6_months" <?= set_select('intern_duration','6_months') ?>>6 Months</option>
+            </select>
+        </div>
+
+      
         <button type="submit" style="width:100%;">Register</button>
 
         <p style="text-align:center; margin-top:15px;">
@@ -46,6 +87,20 @@
     </form>
 
 </div>
+
+
+<script>
+function toggleInternBox() {
+    let role = document.getElementById("role").value;
+    let internBox = document.getElementById("internBox");
+
+    if (role === "Intern") {
+        internBox.style.display = "block";
+    } else {
+        internBox.style.display = "none";
+    }
+}
+</script>
 
 </body>
 </html>

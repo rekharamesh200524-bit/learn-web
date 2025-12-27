@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Course_model extends CI_Model {
 
-    // Get lessons of a course for a user
+   
     public function get_course_lessons($course_id, $user_id)
     {
         return $this->db
@@ -20,7 +20,7 @@ class Course_model extends CI_Model {
             ->result();
     }
 
-    // Get single lesson
+    
     public function get_lesson($lesson_id)
     {
         return $this->db
@@ -29,16 +29,16 @@ class Course_model extends CI_Model {
             ->row();
     }
 
-    // Complete lesson & unlock next
+    
     public function complete_lesson($user_id, $lesson_id, $course_id, $day_no)
     {
-        // Mark lesson completed
+        
         $this->db->where([
             'user_id'   => $user_id,
             'lesson_id' => $lesson_id
         ])->update('lesson_progress', ['status' => 2]);
 
-        // Unlock next lesson
+        
         $next_lesson = $this->db
             ->where([
                 'course_id' => $course_id,

@@ -7,23 +7,23 @@ class User extends MX_Controller {
     {
         parent::__construct();
 
-        // Load required libraries & helpers
+        
         $this->load->database();
         $this->load->helper('url');
         $this->load->library('session');
 
-        // Load model
+       
         $this->load->model('user/User_model');
         $this->load->model('user/Course_model');
 
 
-        // Login check
+        
         if (!$this->session->userdata('user_id')) {
-            redirect('auth/login'); // change if your login URL is different
+            redirect('auth/login'); 
         }
     }
 
-    // ================= DASHBOARD =================
+    
     public function dashboard()
     {
         $user_id = $this->session->userdata('user_id');
@@ -39,7 +39,7 @@ class User extends MX_Controller {
         $this->load->view('dashboard', $data);
     }
 
-    // ================= COURSE PAGE =================
+    
     public function course($course_id)
     {
         $user_id = $this->session->userdata('user_id');
@@ -50,7 +50,7 @@ class User extends MX_Controller {
         $this->load->view('course_page', $data);
     }
 
-    // ================= START COURSE =================
+    
  public function start_course($course_id)
 {
     $user_id = $this->session->userdata('user_id');
@@ -68,7 +68,7 @@ class User extends MX_Controller {
 }
 
 
-    // ================= COMPLETE COURSE =================
+    
     public function complete_course($course_id)
     {
         $user_id = $this->session->userdata('user_id');
@@ -79,7 +79,6 @@ class User extends MX_Controller {
 
 
     
-    // ================= SINGLE LESSON =================
     public function lesson($lesson_id)
     {
         $lesson = $this->User_model->get_lesson_by_id($lesson_id);
@@ -107,13 +106,13 @@ public function submit_mcq($course_id)
     $this->load->model('user/Mcq_model');
     $user_id = $this->session->userdata('user_id');
 
-    // Get all questions count
+   
     $questions = $this->Mcq_model->get_questions($course_id);
     $total_questions = count($questions);
 
     $answers = $this->input->post('answers');
 
-    // ❌ No answers at all
+    
     if (!is_array($answers)) {
         $this->session->set_flashdata(
             'error',
@@ -125,7 +124,7 @@ public function submit_mcq($course_id)
 
     $attempted = count($answers);
 
-    // ❌ User skipped some questions
+    
     if ($attempted < $total_questions) {
         $this->session->set_flashdata(
             'error',
@@ -136,7 +135,7 @@ public function submit_mcq($course_id)
         return;
     }
 
-    // ✅ All questions answered
+   
     $correct = 0;
 
     foreach ($answers as $question_id => $selected_option) {
@@ -159,7 +158,7 @@ public function submit_mcq($course_id)
         $remark = 'Fail';
     }
 
-    // Save result
+   
     $this->db->insert('mcq_results', [
         'user_id'           => $user_id,
         'course_id'         => $course_id,
@@ -170,7 +169,7 @@ public function submit_mcq($course_id)
         'score'             => $percentage,
         'remark'            => $remark
     ]);
-    // ✅ IF MCQ PASSED → mark course COMPLETED
+    // 
 if ($remark !== 'Fail') {
     $this->db
         ->where('user_id', $user_id)

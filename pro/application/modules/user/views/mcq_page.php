@@ -9,7 +9,7 @@
 
 <div class="container">
 
-    <!-- ================= HEADER ================= -->
+    
     <h2>MCQ Test</h2>
 
     <?php if ($this->session->flashdata('error')): ?>
@@ -29,7 +29,7 @@
         <form method="post"
               action="<?= base_url('index.php/user/submit_mcq/'.$course_id) ?>">
 
-            <!-- ================= QUESTIONS ================= -->
+           
             <?php foreach ($questions as $q): ?>
 
                 <div class="card">
@@ -76,7 +76,7 @@
 
             <?php endforeach; ?>
 
-            <!-- ================= SUBMIT ================= -->
+           
             <button type="submit" class="btn" style="font-size:16px;">
                 ✅ Submit MCQ
             </button>

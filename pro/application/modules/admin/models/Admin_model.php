@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Admin_model extends CI_Model {
 
-    // ================= USER REQUESTS =================
+    
 
     public function get_pending_requests()
     {
@@ -29,7 +29,7 @@ class Admin_model extends CI_Model {
             ->update('user_requests', ['status' => $status]);
     }
 
-    // ================= USERS =================
+    
 
     public function insert_user($data)
     {
@@ -37,18 +37,18 @@ class Admin_model extends CI_Model {
     }
 
     public function get_users()
-    {
-        return $this->db
-            ->where('role', 'user')
-            ->get('users')
-            ->result();
-    }
-
-    // ================= DEPARTMENTS =================
+{
+    return $this->db
+        ->where('status', 1)
+        ->get('users')
+        ->result();
+}
 
     
 
-    // ================= FILE UPLOADS =================
+    
+
+   
 
     public function upload_file($data)
     {

@@ -3,7 +3,7 @@
 <head>
     <title>Login</title>
 
-    <!-- Global CSS -->
+    
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
 </head>
 <body>
@@ -18,9 +18,17 @@
             <p class="error"><?= $error ?></p>
         <?php endif; ?>
 
-        <input type="email" name="email" placeholder="Email" required>
+        
+        <input type="email"
+               name="email"
+               placeholder="Email"
+               value="<?= set_value('email') ?>"
+               required>
 
-        <input type="password" name="password" placeholder="Password" required>
+        <input type="password"
+               name="password"
+               placeholder="Password"
+               required>
 
         <button type="submit" style="width:100%;">Login</button>
 
@@ -30,6 +38,12 @@
         </p>
 
     </form>
+
+    <p style="text-align:center; margin-top:10px;">
+        <a href="<?= base_url('index.php/auth/forgot_password') ?>">
+            Forgot Password?
+        </a>
+    </p>
 
 </div>
 
