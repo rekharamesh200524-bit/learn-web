@@ -1,37 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Course</title>
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
-</head>
-<body>
+<h2>Add Course</h2>
 
-<div class="center-page">
+<form method="post" action="<?= base_url('index.php/admin/save_course') ?>">
 
-    <h2>Add New Course</h2>
+    <label>Course Name</label><br>
+    <input type="text" name="course_name" required><br><br>
 
-    <form method="post" action="<?= base_url('index.php/admin/save_course') ?>">
+    <label>Description</label><br>
+    <textarea name="description" required></textarea><br><br>
 
-        <input type="text"
-               name="course_name"
-               placeholder="Course Name"
-               required>
+    <?php if ($this->session->userdata('role') === 'master_admin'): ?>
+        <label>Department</label><br>
+        <select name="department" required>
+            <option value="">Select</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+        </select>
+    <?php else: ?>
+        <!-- Dept head: FORCE department -->
+        <input type="hidden"
+               name="department"
+               value="<?= $this->session->userdata('department') ?>">
 
-        <textarea name="description"
-                  placeholder="Course Description"
-                  required></textarea>
+        <p><b>Department:</b> <?= $this->session->userdata('department') ?></p>
+    <?php endif; ?>
 
-        <button type="submit" style="width:100%;">
-            Save Course
-        </button>
-
-    </form>
-
-    <p style="text-align:center; margin-top:15px;">
-        <a href="<?= base_url('index.php/admin/manage_courses') ?>">⬅ Back</a>
-    </p>
-
-</div>
-
-</body>
-</html>
+    <br>
+    <button type="submit">Save Course</button>
+</form>

@@ -26,4 +26,13 @@ class Mcq_model extends CI_Model {
     {
         return $this->db->insert('mcq_results', $data);
     }
+    public function get_questions_by_department($course_id, $department)
+{
+    return $this->db
+        ->where('course_id', $course_id)
+        ->where('department', $department)
+        ->get('mcq_questions')
+        ->result();
+}
+
 }

@@ -9,7 +9,7 @@ class Admin extends MX_Controller {
 
         $this->load->helper('url');
         $this->load->library('session');
-        $this->load->library('email'); // ✅ EMAIL LIBRARY
+        $this->load->library('email');
         $this->load->database();
         $this->load->model('Admin_model');
 
@@ -37,7 +37,6 @@ class Admin extends MX_Controller {
         /* ===== MASTER ADMIN DASHBOARD ===== */
         if ($role === 'master_admin') {
 
-            // COUNTS
             $data['total_users'] = $this->db->count_all('users');
 
             $data['active_users'] = $this->db
@@ -52,13 +51,12 @@ class Admin extends MX_Controller {
                 ->where('DATE(last_login)', date('Y-m-d'))
                 ->count_all_results('users');
 
-            // ALL USERS LIST
             $data['all_users'] = $this->db
                 ->select('user_name, email, role, department, status, last_login')
                 ->get('users')
                 ->result();
 
-            // ROLE CHART DATA (❌ EXCLUDE MASTER ADMIN)
+            // ❌ Exclude master admin from charts
             $data['role_counts'] = $this->db
                 ->select('role, COUNT(*) as total')
                 ->where('role !=', 'master_admin')
@@ -66,7 +64,6 @@ class Admin extends MX_Controller {
                 ->get('users')
                 ->result();
 
-            // REQUESTS ONLY FOR MASTER APPROVAL (DEPT HEADS)
             $data['requests'] = $this->db
                 ->where('approve_by', 'master')
                 ->order_by('request_id', 'DESC')
@@ -101,47 +98,25 @@ class Admin extends MX_Controller {
             return;
         }
 
-        $role = $this->session->userdata('role');
-
-        // 🔐 SECURITY CHECK
-        if ($request->approve_by === 'master' && $role !== 'master_admin') {
-            show_error('Not authorized');
-        }
-
-        if ($request->approve_by === 'department' && $role !== 'dept_head') {
-            show_error('Not authorized');
-        }
-
         /* ===== INTERN DATE LOGIC ===== */
         $intern_duration = NULL;
         $start_date = NULL;
         $end_date = NULL;
 
         if ($request->role === 'intern') {
-
             $intern_duration = $request->intern_duration;
             $start_date = date('Y-m-d');
 
             switch ($intern_duration) {
-                case '7_days':
-                    $end_date = date('Y-m-d', strtotime('+7 days'));
-                    break;
-                case '1_month':
-                    $end_date = date('Y-m-d', strtotime('+1 month'));
-                    break;
-                case '2_months':
-                    $end_date = date('Y-m-d', strtotime('+2 months'));
-                    break;
-                case '3_months':
-                    $end_date = date('Y-m-d', strtotime('+3 months'));
-                    break;
-                case '6_months':
-                    $end_date = date('Y-m-d', strtotime('+6 months'));
-                    break;
+                case '7_days':   $end_date = date('Y-m-d', strtotime('+7 days')); break;
+                case '1_month':  $end_date = date('Y-m-d', strtotime('+1 month')); break;
+                case '2_months': $end_date = date('Y-m-d', strtotime('+2 months')); break;
+                case '3_months': $end_date = date('Y-m-d', strtotime('+3 months')); break;
+                case '6_months': $end_date = date('Y-m-d', strtotime('+6 months')); break;
             }
         }
 
-        // ✅ INSERT USER
+        // INSERT USER
         $this->db->insert('users', [
             'user_name'         => $request->user_name,
             'email'             => $request->email,
@@ -155,44 +130,25 @@ class Admin extends MX_Controller {
             'status'            => 1
         ]);
 
-        // ✅ UPDATE REQUEST STATUS
+        // UPDATE REQUEST
         $this->db
             ->where('request_id', $id)
             ->update('user_requests', ['status' => 'Approved']);
 
-        /* ================= SEND APPROVAL EMAIL ================= */
-
+        // SEND EMAIL
         $this->email->from('yourgmail@gmail.com', 'Your Application');
         $this->email->to($request->email);
         $this->email->subject('Registration Approved');
 
-        $message = "
+        $this->email->message("
             <h3>Hello {$request->user_name},</h3>
-
-            <p>Your registration has been
-            <b style='color:green;'>approved</b>.</p>
-
-            <p>You can now login using the link below:</p>
-
+            <p>Your registration has been <b style='color:green;'>approved</b>.</p>
             <p>
-                <a href='".base_url('index.php/auth/login')."'
-                   style='padding:10px 15px;
-                          background:#2563eb;
-                          color:#ffffff;
-                          text-decoration:none;
-                          border-radius:5px;'>
-                    Login Now
-                </a>
+                <a href='".base_url('index.php/auth/login')."'>Login Now</a>
             </p>
+        ");
 
-            <p>Regards,<br>Your Team</p>
-        ";
-
-        $this->email->message($message);
-
-        if (!$this->email->send()) {
-            log_message('error', $this->email->print_debugger());
-        }
+        $this->email->send();
 
         redirect('admin/dashboard');
     }
@@ -208,62 +164,55 @@ class Admin extends MX_Controller {
         redirect('admin/dashboard');
     }
 
-    /* ================= FILE UPLOAD ================= */
-
-    public function upload()
-    {
-        $data['users'] = $this->Admin_model->get_users();
-        $data['departments'] = $this->Admin_model->get_departments();
-        $this->load->view('upload', $data);
-    }
-
-    public function do_upload()
-    {
-        if (!isset($_FILES['file']) || $_FILES['file']['error'] != 0) {
-            $this->session->set_flashdata('error', 'Upload error');
-            redirect('admin/upload');
-            return;
-        }
-
-        $upload_path = './uploads/';
-        if (!is_dir($upload_path)) {
-            mkdir($upload_path, 0777, true);
-        }
-
-        $file_name = time().'_'.$_FILES['file']['name'];
-        move_uploaded_file($_FILES['file']['tmp_name'], $upload_path.$file_name);
-
-        $this->Admin_model->upload_file([
-            'file_name'   => $file_name,
-            'file_path'   => 'uploads/'.$file_name,
-            'upload_type' => $this->input->post('upload_type'),
-            'department'  => $this->input->post('department'),
-            'user_id'     => $this->input->post('user_id')
-        ]);
-
-        $this->session->set_flashdata('success', 'Upload successful');
-        redirect('admin/upload');
-    }
-
     /* ================= COURSES ================= */
 
     public function manage_courses()
-    {
+{
+    $role = $this->session->userdata('role');
+
+    if ($role === 'master_admin') {
+        // Master admin → see all
         $data['courses'] = $this->db->get('courses')->result();
-        $this->load->view('manage_courses', $data);
+    } else {
+        // Dept head → see only their department
+        $department = $this->session->userdata('department');
+
+        $data['courses'] = $this->db
+            ->where('department', $department)
+            ->get('courses')
+            ->result();
     }
+
+    $this->load->view('manage_courses', $data);
+}
+
 
     public function add_course()
     {
         $this->load->view('add_course');
     }
 
+    /* 🔥 THIS IS THE FIXED METHOD 🔥 */
     public function save_course()
     {
+        $role = $this->session->userdata('role');
+
+        // FORCE department
+        if ($role === 'dept_head') {
+            $department = $this->session->userdata('department');
+        } else {
+            $department = $this->input->post('department');
+        }
+
+        if (empty($department)) {
+            show_error('Department not set. Please login again.');
+        }
+
         $this->db->insert('courses', [
             'course_name' => $this->input->post('course_name'),
             'description' => $this->input->post('description'),
-            'status' => 1
+            'department'  => $department, // ✅ ALWAYS SAVED
+            'status'      => 1
         ]);
 
         redirect('admin/manage_courses');
@@ -274,4 +223,11 @@ class Admin extends MX_Controller {
         $this->db->where('course_id', $course_id)->delete('courses');
         redirect('admin/manage_courses');
     }
+    public function upload()
+{
+    $data['users'] = $this->Admin_model->get_users();
+    $data['departments'] = $this->Admin_model->get_departments();
+    $this->load->view('upload', $data);
+}
+
 }

@@ -28,7 +28,10 @@ class User extends MX_Controller {
     {
         $user_id = $this->session->userdata('user_id');
 
-        $data['courses'] = $this->User_model->get_courses();
+       $department = $this->session->userdata('department');
+
+$data['courses'] = $this->User_model->get_courses_by_department($department);
+
 
         $completed = $this->User_model->get_completed_courses($user_id);
         $data['completed_course_ids'] = array_column($completed, 'course_id');
@@ -45,7 +48,10 @@ class User extends MX_Controller {
         $user_id = $this->session->userdata('user_id');
 
         $data['course_id'] = $course_id;
-        $data['lessons']   = $this->User_model->get_lessons($course_id);
+      $department = $this->session->userdata('department');
+$data['lessons'] = $this->User_model->get_lessons($course_id);
+
+
 
         $this->load->view('course_page', $data);
     }
@@ -95,7 +101,11 @@ class User extends MX_Controller {
     $this->load->model('user/Mcq_model');
 
     $data['course_id'] = $course_id;
-    $data['questions'] = $this->Mcq_model->get_questions($course_id);
+  $department = $this->session->userdata('department');
+
+$data['questions'] = $this->Mcq_model->get_questions($course_id);
+
+
 
     $this->load->view('mcq_page', $data);
 }
@@ -106,8 +116,13 @@ public function submit_mcq($course_id)
     $this->load->model('user/Mcq_model');
     $user_id = $this->session->userdata('user_id');
 
-   
-    $questions = $this->Mcq_model->get_questions($course_id);
+   $department = $this->session->userdata('department');
+
+$questions = $this->Mcq_model->get_questions_by_department(
+    $course_id,
+    $department
+);
+
     $total_questions = count($questions);
 
     $answers = $this->input->post('answers');
