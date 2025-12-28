@@ -19,8 +19,9 @@
 
     <div class="section">
 
-        <form method="post"
-              action="<?= base_url('index.php/admin/save_lesson/'.$course_id) ?>">
+       
+              <form method="post" action="<?= site_url('admin/save_lesson/'.$course_id) ?>">
+
 
             <label>Day Number</label>
             <input type="number"

@@ -52,7 +52,7 @@ class Admin extends MX_Controller {
                 ->count_all_results('users');
 
             $data['all_users'] = $this->db
-                ->select('user_name, email, role, department, status, last_login')
+                ->select('user_name, email, role, department, status, last_login, intern_duration')
                 ->get('users')
                 ->result();
 
@@ -304,6 +304,194 @@ public function manage_mcq($course_id)
     $this->load->view('manage_mcq', $data);
 }
 
+public function save_lesson($course_id)
+{
+    if (!$course_id) {
+        show_404();
+    }
 
+    $data = [
+        'course_id'       => $course_id,
+        'day_no'          => $this->input->post('day_no'),
+        'lesson_title'    => $this->input->post('lesson_title'),
+        'lesson_content'  => $this->input->post('lesson_content'),
+        'department'      => $this->input->post('department'),
+        'status'          => 1
+    ];
+
+    $this->db->insert('course_lessons', $data);
+
+    $this->session->set_flashdata('success', 'Lesson added successfully');
+
+    redirect('admin/manage_courses');
+}
+public function update_lesson($lesson_id)
+{
+    if (!$lesson_id) {
+        show_404();
+    }
+
+    $data = [
+        'day_no'         => $this->input->post('day_no'),
+        'lesson_title'   => $this->input->post('lesson_title'),
+        'lesson_content' => $this->input->post('lesson_content'),
+        'department'     => $this->input->post('department'),
+        'status'         => $this->input->post('status')
+    ];
+
+    $this->db
+        ->where('lesson_id', $lesson_id)
+        ->update('course_lessons', $data);
+
+    $this->session->set_flashdata('success', 'Lesson updated successfully');
+
+    redirect('admin/manage_courses');
+}
+public function add_mcq($course_id)
+{
+    $data['course_id'] = $course_id;
+    $this->load->view('admin/add_mcq', $data);
+}
+public function save_mcq()
+{
+    
+   $course = $this->db
+    ->where('course_id', $this->input->post('course_id'))
+    ->get('courses')
+    ->row();
+
+$data = [
+    'course_id'      => (int)$this->input->post('course_id'),
+    'day_no'         => (int)$this->input->post('day_no'),
+    'question'       => trim($this->input->post('question')),
+    'option_a'       => trim($this->input->post('option_a')),
+    'option_b'       => trim($this->input->post('option_b')),
+    'option_c'       => trim($this->input->post('option_c')),
+    'option_d'       => trim($this->input->post('option_d')),
+    'correct_option' => strtoupper($this->input->post('correct_option')),
+    'mcq_type'       => strtolower($this->input->post('mcq_type')),
+    'status'         => 1,
+    'department'     => $course->department   // ✅ ALWAYS CORRECT
+];
+
+
+$insert = $this->db->insert('mcq_questions', $data);
+
+if (!$insert) {
+    echo "<pre>";
+    print_r($this->db->error());
+    exit;
+}
+
+
+    
+    redirect('admin/manage_mcq/'.$data['course_id']);
+}
+
+public function do_upload()
+{
+    $config['upload_path']   = './uploads/';
+    $config['allowed_types'] = '*';
+    $config['max_size']      = 20480; // 20MB
+
+    $this->load->library('upload', $config);
+
+    if (!$this->upload->do_upload('file')) {
+        $this->session->set_flashdata(
+            'error',
+            $this->upload->display_errors()
+        );
+        redirect('admin/upload');
+        return;
+    }
+
+    $fileData = $this->upload->data();
+
+    $upload_type = $this->input->post('upload_type');
+
+    $data = [
+        'file_name'   => $fileData['file_name'],
+        'file_path'   => 'uploads/' . $fileData['file_name'],
+        'upload_type' => $upload_type,
+        'department'  => $this->input->post('department'),
+        'user_id'     => $this->input->post('user_id'),
+        'created_at'  => date('Y-m-d H:i:s')
+    ];
+
+    $this->db->insert('uploads', $data);
+
+   if ($this->upload->do_upload('file')) {
+
+    // your existing DB insert code here
+
+    $this->session->set_flashdata(
+        'success',
+        '✅ File uploaded successfully'
+    );
+
+    redirect('admin/upload');
+}
+
+}
+public function delete_mcq($id)
+{
+    if (!$id) {
+        show_404();
+    }
+
+    $mcq = $this->db
+        ->where('question_id', $id)
+        ->get('mcq_questions')
+        ->row();
+
+    if (!$mcq) {
+        show_404();
+    }
+
+    $this->db
+        ->where('question_id', $id)
+        ->delete('mcq_questions');
+
+    $this->session->set_flashdata(
+        'success',
+        'MCQ deleted successfully'
+    );
+
+    redirect('admin/manage_mcq/' . $mcq->course_id);
+}
+
+public function edit_mcq($question_id)
+{
+    $data['mcq'] = $this->db
+        ->where('question_id', $question_id)
+        ->get('mcq_questions')
+        ->row();
+
+    if (!$data['mcq']) {
+        show_404();
+    }
+
+    $this->load->view('admin/edit_mcq', $data);
+}
+public function update_mcq($question_id)
+{
+    $data = [
+        'day_no'         => (int)$this->input->post('day_no'),
+        'question'       => trim($this->input->post('question')),
+        'option_a'       => trim($this->input->post('option_a')),
+        'option_b'       => trim($this->input->post('option_b')),
+        'option_c'       => trim($this->input->post('option_c')),
+        'option_d'       => trim($this->input->post('option_d')),
+        'correct_option' => strtoupper($this->input->post('correct_option')),
+        'mcq_type'       => strtolower($this->input->post('mcq_type')),
+        'status'         => 1
+    ];
+
+    $this->db
+        ->where('question_id', $question_id)
+        ->update('mcq_questions', $data);
+
+    redirect('admin/manage_mcq/'.$this->input->post('course_id'));
+}
 
 }

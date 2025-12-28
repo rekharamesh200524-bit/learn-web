@@ -1,4 +1,4 @@
-<h2>Day <?= $lesson->day_no ?>: <?= $lesson->lesson_title ?></h2>
+<h2>Day <?= $lesson->day_no ?>: <?= $lesson->lesson_title ?></h2> <a href="javascript:history.back()">⬅ Back to Lessons</a>
 
 <hr>
 
@@ -8,4 +8,3 @@
 
 <br>
 
-<a href="javascript:history.back()">⬅ Back to Lessons</a>

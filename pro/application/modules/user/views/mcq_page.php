@@ -9,9 +9,22 @@
 
 <div class="container">
 
-    
-    <h2>MCQ Test</h2>
+    <h2>
+        <?= isset($is_final_mcq) && $is_final_mcq
+            ? 'Final Course MCQ'
+            : 'Day '.$mcq_day.' MCQ Test'; ?>
+    </h2>
 
+    <!-- 🔒 FUTURE DAY BLOCK -->
+    <?php if ($mcq_day > $current_day): ?>
+        <div class="error">
+            🔒 This MCQ is locked.<br>
+            Complete Day <?= $current_day ?> MCQ to unlock.
+        </div>
+        <?php exit; ?>
+    <?php endif; ?>
+
+    <!-- ❌ ERROR MESSAGE -->
     <?php if ($this->session->flashdata('error')): ?>
         <div class="error">
             <?= $this->session->flashdata('error'); ?>
@@ -29,56 +42,30 @@
         <form method="post"
               action="<?= base_url('index.php/user/submit_mcq/'.$course_id) ?>">
 
-           
             <?php foreach ($questions as $q): ?>
 
                 <div class="card">
 
                     <p><strong><?= htmlspecialchars($q->question) ?></strong></p>
 
-                    <?php if (!empty($q->option_a)): ?>
-                        <label>
-                            <input type="radio"
-                                   name="answers[<?= $q->question_id ?>]"
-                                   value="A">
-                            <?= htmlspecialchars($q->option_a) ?>
-                        </label><br>
-                    <?php endif; ?>
-
-                    <?php if (!empty($q->option_b)): ?>
-                        <label>
-                            <input type="radio"
-                                   name="answers[<?= $q->question_id ?>]"
-                                   value="B">
-                            <?= htmlspecialchars($q->option_b) ?>
-                        </label><br>
-                    <?php endif; ?>
-
-                    <?php if (!empty($q->option_c)): ?>
-                        <label>
-                            <input type="radio"
-                                   name="answers[<?= $q->question_id ?>]"
-                                   value="C">
-                            <?= htmlspecialchars($q->option_c) ?>
-                        </label><br>
-                    <?php endif; ?>
-
-                    <?php if (!empty($q->option_d)): ?>
-                        <label>
-                            <input type="radio"
-                                   name="answers[<?= $q->question_id ?>]"
-                                   value="D">
-                            <?= htmlspecialchars($q->option_d) ?>
-                        </label><br>
-                    <?php endif; ?>
+                    <?php foreach (['A','B','C','D'] as $opt): ?>
+                        <?php $field = 'option_'.strtolower($opt); ?>
+                        <?php if (!empty($q->$field)): ?>
+                            <label>
+                                <input type="radio"
+                                       name="answers[<?= $q->question_id ?>]"
+                                       value="<?= $opt ?>">
+                                <?= htmlspecialchars($q->$field) ?>
+                            </label><br>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
 
                 </div>
 
             <?php endforeach; ?>
 
-           
             <button type="submit" class="btn" style="font-size:16px;">
-                ✅ Submit MCQ
+                ✅ Submit <?= isset($is_final_mcq) && $is_final_mcq ? 'Final' : 'Day '.$mcq_day ?> MCQ
             </button>
 
         </form>

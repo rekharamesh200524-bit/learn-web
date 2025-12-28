@@ -1,5 +1,21 @@
+
+
 <h2>Upload File / Video</h2>
 <a href="<?= base_url('index.php/admin/dashboard') ?>">⬅ Back</a>
+<?php if ($this->session->flashdata('success')): ?>
+    <div style="
+        background:#e6fffa;
+        color:#065f46;
+        padding:10px;
+        margin-bottom:15px;
+        border-radius:5px;
+        font-weight:600;
+    ">
+        <?= $this->session->flashdata('success'); ?>
+    </div>
+<?php endif; ?>
+
+
 
 <form method="post" enctype="multipart/form-data"
       action="<?= base_url('index.php/admin/do_upload'); ?>">

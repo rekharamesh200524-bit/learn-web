@@ -128,7 +128,7 @@
                         <td><?= $row->mobile ?></td>
                         <td><?= $row->department ?></td>
                         <td><?= $row->role ?></td>
-                        <td><?= ($row->role === 'Intern') ? $row->intern_duration : '-' ?></td>
+                        <td><?= ($row->role === 'intern') ? $row->intern_duration : '-' ?></td>
                         <td><?= $row->status ?></td>
                         <td>
                             <?php if ($row->status === 'Pending'): ?>

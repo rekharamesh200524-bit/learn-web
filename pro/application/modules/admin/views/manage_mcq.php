@@ -1,4 +1,8 @@
 <h2>Manage MCQ Questions</h2>
+<a href="<?= base_url('index.php/admin/edit_course/'.$course_id) ?>">
+    ⬅ Back to Course
+</a>
+
 
 <a href="<?= base_url('index.php/admin/add_mcq/'.$course_id) ?>">
     ➕ Add New Question
@@ -39,6 +43,3 @@
 </table>
 
 <br>
-<a href="<?= base_url('index.php/admin/edit_course/'.$course_id) ?>">
-    ⬅ Back to Course
-</a>

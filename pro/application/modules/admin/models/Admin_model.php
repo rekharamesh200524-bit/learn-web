@@ -76,4 +76,7 @@ class Admin_model extends CI_Model {
             ->get('users')
             ->result();
     }
+   
+
 }
+

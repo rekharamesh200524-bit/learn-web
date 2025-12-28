@@ -1,36 +1,56 @@
-<h2>Add New MCQ Question</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add MCQ</title>
+</head>
+<body>
 
-<form method="post"
-      action="<?= base_url('index.php/admin/save_mcq/'.$course_id) ?>">
+<h2>Add MCQ Question</h2>
 
-    <label>Question</label><br>
-    <textarea name="question" required style="width:100%;" rows="3"></textarea><br><br>
+<form method="post" action="<?= site_url('admin/save_mcq') ?>">
 
-    <label>Option A</label><br>
-    <input type="text" name="option_a" required><br><br>
+    <!-- REQUIRED -->
+    <input type="hidden" name="course_id" value="<?= $course_id ?>">
 
-    <label>Option B</label><br>
-    <input type="text" name="option_b" required><br><br>
+    <!-- REQUIRED -->
+    <label>Day No</label>
+    <select name="day_no" required>
+        <option value="">Select Day</option>
+        <?php for ($i = 1; $i <= 10; $i++): ?>
+            <option value="<?= $i ?>">Day <?= $i ?></option>
+        <?php endfor; ?>
+    </select>
 
-    <label>Option C</label><br>
-    <input type="text" name="option_c" required><br><br>
+    <label>Question</label>
+    <textarea name="question" required></textarea>
 
-    <label>Option D</label><br>
-    <input type="text" name="option_d" required><br><br>
+    <label>Option A</label>
+    <input type="text" name="option_a">
 
-    <label>Correct Option</label><br>
+    <label>Option B</label>
+    <input type="text" name="option_b">
+
+    <label>Option C</label>
+    <input type="text" name="option_c">
+
+    <label>Option D</label>
+    <input type="text" name="option_d">
+
+    <label>Correct Option</label>
     <select name="correct_option" required>
-        <option value="">Select</option>
         <option value="A">A</option>
         <option value="B">B</option>
         <option value="C">C</option>
         <option value="D">D</option>
-    </select><br><br>
+    </select>
 
-    <button type="submit">Save Question</button>
+    <!-- REQUIRED -->
+    <input type="hidden" name="mcq_type" value="daily">
+
+    <button type="submit">Save MCQ</button>
+
 </form>
 
-<br>
-<a href="<?= base_url('index.php/admin/manage_mcq/'.$course_id) ?>">
-    ⬅ Back to MCQ List
-</a>
+
+</body>
+</html>

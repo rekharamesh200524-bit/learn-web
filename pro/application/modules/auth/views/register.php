@@ -53,28 +53,38 @@
                placeholder="Password"
                required>
 
-      
-        <select name="role"
-                id="role"
-                required
-                onchange="toggleInternBox()">
-            <option value="">Select Role</option>
-            <option value="Employee" <?= set_select('role','Employee') ?>>Employee</option>
-            <option value="Intern" <?= set_select('role','Intern') ?>>Intern</option>
-        </select>
+      <select name="role"
+        id="role"
+        required
+        onchange="toggleInternBox()">
+
+    <option value="">Select Role</option>
+
+    <option value="employee" <?= set_select('role','employee') ?>>
+        Employee
+    </option>
+
+    <option value="intern" <?= set_select('role','intern') ?>>
+        Intern
+    </option>
+
+</select>
 
        
         <div id="internBox"
-             style="display:<?= (set_value('role') === 'Intern') ? 'block' : 'none'; ?>;">
-            <select name="intern_duration">
-                <option value="">Select Internship Duration</option>
-                <option value="7_days" <?= set_select('intern_duration','7_days') ?>>7 Days</option>
-                <option value="1_month" <?= set_select('intern_duration','1_month') ?>>1 Month</option>
-                <option value="2_months" <?= set_select('intern_duration','2_months') ?>>2 Months</option>
-                <option value="3_months" <?= set_select('intern_duration','3_months') ?>>3 Months</option>
-                <option value="6_months" <?= set_select('intern_duration','6_months') ?>>6 Months</option>
-            </select>
-        </div>
+     style="display:<?= (set_value('role') === 'intern') ? 'block' : 'none'; ?>;">
+
+    <select name="intern_duration">
+        <option value="">Select Internship Duration</option>
+        <option value="7_days" <?= set_select('intern_duration','7_days') ?>>7 Days</option>
+        <option value="1_month" <?= set_select('intern_duration','1_month') ?>>1 Month</option>
+        <option value="2_months" <?= set_select('intern_duration','2_months') ?>>2 Months</option>
+        <option value="3_months" <?= set_select('intern_duration','3_months') ?>>3 Months</option>
+        <option value="6_months" <?= set_select('intern_duration','6_months') ?>>6 Months</option>
+    </select>
+
+</div>
+
 
       
         <button type="submit" style="width:100%;">Register</button>
@@ -94,7 +104,7 @@ function toggleInternBox() {
     let role = document.getElementById("role").value;
     let internBox = document.getElementById("internBox");
 
-    if (role === "Intern") {
+    if (role === "intern") {
         internBox.style.display = "block";
     } else {
         internBox.style.display = "none";

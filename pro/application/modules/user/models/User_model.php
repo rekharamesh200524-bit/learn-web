@@ -32,36 +32,37 @@ class User_model extends CI_Model {
             ->result_array();
     }
 
-    public function get_in_progress_course($user_id)
-    {
-        return $this->db
-            ->where('user_id', $user_id)
-            ->where('completed', 0)
-            ->get('course_progress')
-            ->row();
+ public function get_in_progress_course($user_id)
+{
+    return $this->db
+        ->where('user_id', $user_id)
+        ->where('completed', 0)
+        ->get('course_progress')
+        ->row();
+}
+
+public function start_course($user_id, $course_id)
+{
+    $active = $this->db
+        ->where('user_id', $user_id)
+        ->where('completed', 0)
+        ->get('course_progress')
+        ->row();
+
+    if ($active) {
+        return false;
     }
 
-    public function start_course($user_id, $course_id)
-    {
-        // ❌ Only one active course allowed
-        $active = $this->db
-            ->where('user_id', $user_id)
-            ->where('completed', 0)
-            ->get('course_progress')
-            ->row();
+    return $this->db->insert('course_progress', [
+        'user_id'     => $user_id,
+        'course_id'   => $course_id,
+        'current_day' => 1,
+        'completed'   => 0,
+        'mcq_completed' => 0
+    ]);
+}
 
-        if ($active) {
-            return false;
-        }
 
-        return $this->db->insert('course_progress', [
-            'user_id'           => $user_id,
-            'course_id'         => $course_id,
-            'lesson_completed'  => 0,
-            'mcq_completed'     => 0,
-            'completed'         => 0
-        ]);
-    }
 
     public function mark_course_completed($user_id, $course_id)
     {
@@ -74,27 +75,9 @@ class User_model extends CI_Model {
             ]);
     }
 
-    /* =============================
-       LESSONS (COURSE BASED)
-    ============================= */
+ 
+  
 
-    // ✅ Lessons belong ONLY to course
-    public function get_lessons($course_id)
-    {
-        return $this->db
-            ->where('course_id', $course_id)
-            ->order_by('lesson_id', 'ASC')
-            ->get('course_lessons')
-            ->result();
-    }
-
-    public function get_lesson_by_id($lesson_id)
-    {
-        return $this->db
-            ->where('lesson_id', $lesson_id)
-            ->get('course_lessons')
-            ->row();
-    }
 
     /* =============================
        FILES (UPLOAD SYSTEM)
@@ -134,4 +117,80 @@ class User_model extends CI_Model {
             ->get('uploads')
             ->result();
     }
+   public function get_course_progress($user_id, $course_id)
+{
+    return $this->db
+        ->where('user_id', $user_id)
+        ->where('course_id', $course_id)
+        ->get('course_progress')
+        ->row();
+}
+
+
+
+   public function get_current_day($user_id, $course_id)
+{
+    $progress = $this->db
+        ->where('user_id', $user_id)
+        ->where('course_id', $course_id)
+        ->get('course_progress')
+        ->row();
+
+    if (!$progress) {
+        return 1; // course not started yet
+    }
+
+    return max(1, (int)$progress->current_day);
+}
+public function get_lesson_by_id($lesson_id)
+{
+    return $this->db
+        ->where('lesson_id', $lesson_id)
+        ->get('course_lessons')
+        ->row();
+}
+public function get_effective_course_days($user_id)
+{
+    $user = $this->db->where('user_id', $user_id)->get('users')->row();
+
+    if (!$user || !$user->intern_duration) {
+        return 10;
+    }
+
+    return ($user->intern_duration === '7_days') ? 7 : 10;
+}
+
+public function get_grouped_lessons($course_id, $effective_days)
+{
+    $lessons = $this->db
+        ->where('course_id', $course_id)
+        ->order_by('lesson_id', 'ASC')
+        ->get('course_lessons')
+        ->result();
+
+    $total = count($lessons);
+    if ($total === 0) return [];
+
+    $per_day = ceil($total / $effective_days);
+
+    $grouped = [];
+    $day = 1;
+    $count = 0;
+
+    foreach ($lessons as $lesson) {
+        $grouped[$day][] = $lesson;
+        $count++;
+
+        if ($count >= $per_day && $day < $effective_days) {
+            $day++;
+            $count = 0;
+        }
+    }
+
+    return $grouped;
+}
+
+   
+
+
 }

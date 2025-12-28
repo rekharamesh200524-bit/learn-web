@@ -1,40 +1,37 @@
-<h2>Edit MCQ Question</h2>
+<h2>Edit MCQ</h2>
 
-<form method="post"
-      action="<?= base_url('index.php/admin/update_mcq/'.$question->question_id) ?>">
+<form method="post" action="<?= site_url('admin/update_mcq/'.$mcq->question_id) ?>">
 
-    <label>Question</label><br>
-    <textarea name="question" required
-              style="width:100%;"><?= htmlspecialchars($question->question) ?></textarea><br><br>
+    <input type="hidden" name="course_id" value="<?= $mcq->course_id ?>">
 
-    <label>Option A</label><br>
-    <input type="text" name="option_a"
-           value="<?= htmlspecialchars($question->option_a) ?>" required><br><br>
+    <label>Day No</label>
+    <input type="number" name="day_no" value="<?= $mcq->day_no ?>" required>
 
-    <label>Option B</label><br>
-    <input type="text" name="option_b"
-           value="<?= htmlspecialchars($question->option_b) ?>" required><br><br>
+    <label>Question</label>
+    <textarea name="question" required><?= $mcq->question ?></textarea>
 
-    <label>Option C</label><br>
-    <input type="text" name="option_c"
-           value="<?= htmlspecialchars($question->option_c) ?>" required><br><br>
+    <label>Option A</label>
+    <input type="text" name="option_a" value="<?= $mcq->option_a ?>">
 
-    <label>Option D</label><br>
-    <input type="text" name="option_d"
-           value="<?= htmlspecialchars($question->option_d) ?>" required><br><br>
+    <label>Option B</label>
+    <input type="text" name="option_b" value="<?= $mcq->option_b ?>">
 
-    <label>Correct Option</label><br>
-    <select name="correct_option" required>
-        <option value="A" <?= $question->correct_option=='A'?'selected':'' ?>>A</option>
-        <option value="B" <?= $question->correct_option=='B'?'selected':'' ?>>B</option>
-        <option value="C" <?= $question->correct_option=='C'?'selected':'' ?>>C</option>
-        <option value="D" <?= $question->correct_option=='D'?'selected':'' ?>>D</option>
-    </select><br><br>
+    <label>Option C</label>
+    <input type="text" name="option_c" value="<?= $mcq->option_c ?>">
 
-    <button type="submit">Save Changes</button>
+    <label>Option D</label>
+    <input type="text" name="option_d" value="<?= $mcq->option_d ?>">
+
+    <label>Correct Option</label>
+    <select name="correct_option">
+        <option value="A" <?= $mcq->correct_option=='A'?'selected':'' ?>>A</option>
+        <option value="B" <?= $mcq->correct_option=='B'?'selected':'' ?>>B</option>
+        <option value="C" <?= $mcq->correct_option=='C'?'selected':'' ?>>C</option>
+        <option value="D" <?= $mcq->correct_option=='D'?'selected':'' ?>>D</option>
+    </select>
+
+    <input type="hidden" name="mcq_type" value="<?= $mcq->mcq_type ?>">
+
+    <button type="submit">Update MCQ</button>
+
 </form>
-
-<br>
-<a href="<?= base_url('index.php/admin/manage_mcq/'.$question->course_id) ?>">
-    ⬅ Back
-</a>

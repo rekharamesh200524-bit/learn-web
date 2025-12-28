@@ -61,6 +61,7 @@ class Auth extends MX_Controller {
     public function register()
     {
         $this->load->view('register');
+        
     }
 
     public function register_submit()
@@ -111,6 +112,7 @@ class Auth extends MX_Controller {
             'intern_duration' => ($role === 'intern')
                                   ? $this->input->post('intern_duration')
                                   : NULL,
+                                  
             'status'     => 'Pending',
             'created_at' => date('Y-m-d H:i:s'),
 
@@ -124,6 +126,7 @@ class Auth extends MX_Controller {
         $this->db->insert('user_requests', $data);
 
         $this->session->set_userdata('registered_email', $data['email']);
+        
 
         redirect('auth/waiting');
     }

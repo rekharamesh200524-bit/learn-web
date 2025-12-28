@@ -34,5 +34,14 @@ class Mcq_model extends CI_Model {
         ->get('mcq_questions')
         ->result();
 }
+public function get_questions_by_day($course_id, $day_no)
+{
+    return $this->db
+        ->where('course_id', $course_id)
+        ->where('day_no', $day_no)
+        ->get('mcq_questions')
+        ->result();
+}
+
 
 }
