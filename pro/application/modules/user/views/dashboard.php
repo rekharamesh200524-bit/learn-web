@@ -28,23 +28,48 @@
     <?php endif; ?>
 
     <!-- ================= FILES ================= -->
-    <div class="section">
-        <h3>Shared Files</h3>
+   <div class="section">
+    <h3>Shared Files</h3>
 
-        <div class="cards">
-            <?php if (!empty($files)): ?>
-                <?php foreach ($files as $file): ?>
-                    <div class="card">
-                        <strong><?= $file->file_name ?></strong><br><br>
-                        <a href="<?= base_url($file->file_path) ?>" download class="btn">Download</a>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p>No files shared with you.</p>
-            <?php endif; ?>
-        </div>
+    <div class="cards">
+        <?php if (!empty($files)): ?>
+            <?php foreach ($files as $file): ?>
+
+                <?php
+                    $file_path = base_url($file->file_path);
+                    $ext = strtolower(pathinfo($file->file_path, PATHINFO_EXTENSION));
+
+                    $image_types = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                    $video_types = ['mp4', 'webm', 'ogg'];
+                ?>
+
+                <div class="card">
+                    <strong><?= $file->file_name ?></strong><br><br>
+
+                    <!-- 📸 IMAGE -->
+                    <?php if (in_array($ext, $image_types)): ?>
+                        <img src="<?= $file_path ?>" 
+                             style="max-width:100%; height:auto; border-radius:8px;">
+
+                    <!-- 🎥 VIDEO -->
+                    <?php elseif (in_array($ext, $video_types)): ?>
+                        <video controls style="max-width:100%; border-radius:8px;">
+                            <source src="<?= $file_path ?>" type="video/<?= $ext ?>">
+                            Your browser does not support video.
+                        </video>
+
+                    <!-- 📄 OTHER FILES -->
+                    <?php else: ?>
+                        <a href="<?= $file_path ?>" download class="btn">Download</a>
+                    <?php endif; ?>
+                </div>
+
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>No files shared with you.</p>
+        <?php endif; ?>
     </div>
-
+</div>
     <!-- ================= COURSES ================= -->
     <div class="section">
         <h3>Your Courses</h3>

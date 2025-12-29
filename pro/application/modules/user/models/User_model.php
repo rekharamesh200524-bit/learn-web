@@ -43,22 +43,36 @@ class User_model extends CI_Model {
 
 public function start_course($user_id, $course_id)
 {
+    // 🔒 Check if ANOTHER course is still active
     $active = $this->db
         ->where('user_id', $user_id)
         ->where('completed', 0)
+        ->where('course_id !=', $course_id) // ✅ IMPORTANT
         ->get('course_progress')
         ->row();
 
     if ($active) {
-        return false;
+        return false; // another course still running
     }
 
+    // 🔁 If this course already exists and is completed → allow reopen
+    $existing = $this->db
+        ->where('user_id', $user_id)
+        ->where('course_id', $course_id)
+        ->get('course_progress')
+        ->row();
+
+    if ($existing) {
+        return true;
+    }
+
+    // ✅ Start new course
     return $this->db->insert('course_progress', [
-        'user_id'     => $user_id,
-        'course_id'   => $course_id,
-        'current_day' => 1,
-        'completed'   => 0,
-        'mcq_completed' => 0
+        'user_id'        => $user_id,
+        'course_id'      => $course_id,
+        'current_day'    => 1,
+        'completed'      => 0,
+        'mcq_completed'  => 0
     ]);
 }
 

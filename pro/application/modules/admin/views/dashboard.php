@@ -33,6 +33,13 @@
             </a>
         </div>
     </div>
+    <br>
+    <?php if ($this->session->userdata('role') === 'master_admin'): ?>
+    <a href="<?= base_url('index.php/admin/add_dept_head') ?>" class="btn">
+        ➕ Add Department Head
+    </a>
+<?php endif; ?>
+
 
     <!-- ================= MASTER ADMIN VIEW ================= -->
     <?php if ($this->session->userdata('role') === 'master_admin'): ?>
@@ -157,6 +164,42 @@
     </div>
 
 </div>
+<?php if ($this->session->userdata('role') === 'dept_head'): ?>
+
+<div class="section">
+    <h3>Department Users Course Progress</h3>
+
+    <table>
+        <tr>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>Total Courses</th>
+            <th>Completed Courses</th>
+            <th>Progress</th>
+        </tr>
+
+        <?php if (!empty($dept_users_progress)): ?>
+            <?php foreach ($dept_users_progress as $u): ?>
+                <tr>
+                    <td><?= $u->user_name ?></td>
+                    <td><?= $u->email ?></td>
+                    <td><?= $u->total_courses ?></td>
+                    <td><?= $u->completed_courses ?></td>
+                    <td>
+                        <strong><?= $u->progress_percentage ?>%</strong>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="5">No users found for your department</td>
+            </tr>
+        <?php endif; ?>
+    </table>
+</div>
+
+<?php endif; ?>
+
 
 <!-- ================= CHART SCRIPTS ================= -->
 <?php if ($this->session->userdata('role') === 'master_admin'): ?>

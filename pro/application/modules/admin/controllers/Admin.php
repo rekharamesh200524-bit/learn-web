@@ -13,12 +13,11 @@ class Admin extends MX_Controller {
         $this->load->database();
         $this->load->model('Admin_model');
 
-        // 🔐 Login check
+        //  Login check
         if (!$this->session->userdata('user_id')) {
             redirect('auth/login');
         }
 
-        // 🔐 Allow only master admin & department head
         if (
             $this->session->userdata('role') !== 'master_admin' &&
             $this->session->userdata('role') !== 'dept_head'
@@ -27,14 +26,14 @@ class Admin extends MX_Controller {
         }
     }
 
-    /* ================= DASHBOARD ================= */
+    /*  DASHBOARD */
 
     public function dashboard()
     {
         $role    = $this->session->userdata('role');
         $user_id = $this->session->userdata('user_id');
 
-        /* ===== MASTER ADMIN DASHBOARD ===== */
+        /*  MASTER ADMIN DASHBOARD  */
         if ($role === 'master_admin') {
 
             $data['total_users'] = $this->db->count_all('users');
@@ -56,7 +55,7 @@ class Admin extends MX_Controller {
                 ->get('users')
                 ->result();
 
-            // ❌ Exclude master admin from charts
+            
             $data['role_counts'] = $this->db
                 ->select('role, COUNT(*) as total')
                 ->where('role !=', 'master_admin')
@@ -71,21 +70,29 @@ class Admin extends MX_Controller {
                 ->result();
         }
 
-        /* ===== DEPARTMENT HEAD DASHBOARD ===== */
-        elseif ($role === 'dept_head') {
+        /*  DEPARTMENT HEAD DASHBOARD  */
+      elseif ($role === 'dept_head') {
 
-            $data['requests'] = $this->db
-                ->where('approve_by', 'department')
-                ->where('department_head_id', $user_id)
-                ->order_by('request_id', 'DESC')
-                ->get('user_requests')
-                ->result();
-        }
+    $department = $this->session->userdata('department');
+
+    // Approval requests
+    $data['requests'] = $this->db
+        ->where('approve_by', 'department')
+        ->where('department_head_id', $user_id)
+        ->order_by('request_id', 'DESC')
+        ->get('user_requests')
+        ->result();
+
+    // 🔥 USER PROGRESS DATA
+    $data['dept_users_progress'] =
+        $this->Admin_model->get_department_users_progress($department);
+}
+
 
         $this->load->view('dashboard', $data);
     }
 
-    /* ================= APPROVE REQUEST ================= */
+    
 
     public function approve($id)
     {
@@ -97,8 +104,9 @@ class Admin extends MX_Controller {
             redirect('admin/dashboard');
             return;
         }
+        
 
-        /* ===== INTERN DATE LOGIC ===== */
+        /*  INTERN DATE LOGIC */
         $intern_duration = NULL;
         $start_date = NULL;
         $end_date = NULL;
@@ -153,7 +161,7 @@ class Admin extends MX_Controller {
         redirect('admin/dashboard');
     }
 
-    /* ================= REJECT REQUEST ================= */
+    
 
     public function reject($id)
     {
@@ -164,17 +172,17 @@ class Admin extends MX_Controller {
         redirect('admin/dashboard');
     }
 
-    /* ================= COURSES ================= */
+    /*  COURSES  */
 
     public function manage_courses()
 {
     $role = $this->session->userdata('role');
 
     if ($role === 'master_admin') {
-        // Master admin → see all
+       
         $data['courses'] = $this->db->get('courses')->result();
     } else {
-        // Dept head → see only their department
+        
         $department = $this->session->userdata('department');
 
         $data['courses'] = $this->db
@@ -192,12 +200,12 @@ class Admin extends MX_Controller {
         $this->load->view('add_course');
     }
 
-    /* 🔥 THIS IS THE FIXED METHOD 🔥 */
+    
     public function save_course()
     {
         $role = $this->session->userdata('role');
 
-        // FORCE department
+       
         if ($role === 'dept_head') {
             $department = $this->session->userdata('department');
         } else {
@@ -211,7 +219,7 @@ class Admin extends MX_Controller {
         $this->db->insert('courses', [
             'course_name' => $this->input->post('course_name'),
             'description' => $this->input->post('description'),
-            'department'  => $department, // ✅ ALWAYS SAVED
+            'department'  => $department, 
             'status'      => 1
         ]);
 
@@ -230,14 +238,14 @@ class Admin extends MX_Controller {
 
     if ($role === 'master_admin') {
 
-        // MASTER ADMIN → everything allowed
+        
         $data['allow_all'] = true;
         $data['departments'] = $this->Admin_model->get_departments();
         $data['users'] = $this->Admin_model->get_users();
 
     } else {
 
-        // DEPT HEAD → STRICT RULES
+        
         $data['allow_all'] = false;
         $data['departments'] = [$department]; // ONLY OWN DEPARTMENT
         $data['users'] = $this->Admin_model->get_users_by_department($department);
@@ -281,7 +289,7 @@ public function add_lesson($course_id)
 {
     $data['course_id'] = $course_id;
 
-    // Get next day number
+    
     $last = $this->db
         ->where('course_id', $course_id)
         ->order_by('day_no', 'DESC')
@@ -392,7 +400,7 @@ public function do_upload()
 {
     $config['upload_path']   = './uploads/';
     $config['allowed_types'] = '*';
-    $config['max_size']      = 20480; // 20MB
+    $config['max_size']      = 20480; 
 
     $this->load->library('upload', $config);
 
@@ -422,7 +430,7 @@ public function do_upload()
 
    if ($this->upload->do_upload('file')) {
 
-    // your existing DB insert code here
+    
 
     $this->session->set_flashdata(
         'success',
@@ -493,5 +501,97 @@ public function update_mcq($question_id)
 
     redirect('admin/manage_mcq/'.$this->input->post('course_id'));
 }
+/* ================= ADD DEPARTMENT HEAD ================= */
+
+public function add_dept_head()
+{
+    // Only master admin allowed
+    if ($this->session->userdata('role') !== 'master_admin') {
+        show_error('Unauthorized access');
+    }
+
+    $this->load->view('add_dept_head');
+}
+
+public function save_dept_head()
+{
+    if ($this->session->userdata('role') !== 'master_admin') {
+        show_error('Unauthorized access');
+    }
+
+    $this->load->library('form_validation');
+
+    $this->form_validation->set_rules('user_name', 'Name', 'required|min_length[3]');
+    $this->form_validation->set_rules(
+        'email',
+        'Email',
+        'required|valid_email|is_unique[users.email]'
+    );
+    $this->form_validation->set_rules('department', 'Department', 'required');
+    $this->form_validation->set_rules('password', 'Password', 'required|min_length[6]');
+
+    if ($this->form_validation->run() === FALSE) {
+        $this->load->view('add_dept_head');
+        return;
+    }
+
+    // ================= INSERT DEPT HEAD =================
+    $data = [
+        'user_name'  => $this->input->post('user_name'),
+        'email'      => $this->input->post('email'),
+        'department' => $this->input->post('department'),
+        'password'   => md5($this->input->post('password')),
+        'role'       => 'dept_head',
+        'status'     => 1
+    ];
+
+    $this->db->insert('users', $data);
+
+    // ================= SEND EMAIL =================
+    $this->email->from('yourgmail@gmail.com', 'Your Application');
+    $this->email->to($data['email']);
+    $this->email->subject('Department Head Access Approved');
+
+    $message = "
+        <h3>Hello {$data['user_name']},</h3>
+
+        <p>You have been <b style='color:green;'>approved as Department Head</b>
+        for the <b>{$data['department']}</b> department.</p>
+
+        <p>You are now eligible to login using the link below:</p>
+
+        <p>
+            <a href='".base_url('index.php/auth/login')."'
+               style='padding:10px 15px;
+                      background:#2563eb;
+                      color:#ffffff;
+                      text-decoration:none;
+                      border-radius:6px;'>
+                Login Now
+            </a>
+        </p>
+
+        <p><b>Email:</b> {$data['email']}</p>
+
+        <p>Regards,<br>
+        System Admin</p>
+    ";
+
+    $this->email->message($message);
+
+    if (!$this->email->send()) {
+        log_message('error', $this->email->print_debugger());
+    }
+
+    // ================= SUCCESS MESSAGE =================
+    $this->session->set_flashdata(
+        'success',
+        'Department Head added and email sent successfully.'
+    );
+
+    redirect('admin/dashboard');
+}
+
+
 
 }

@@ -9,9 +9,7 @@
 <div class="container">
 
 <?php
-    // ===============================
-    // ROLE & PERMISSION CHECK
-    // ===============================
+    
     $role        = $this->session->userdata('role');
     $admin_dept  = $this->session->userdata('department');
     $course_dept = $course->department;
@@ -22,7 +20,7 @@
     );
 ?>
 
-    <!-- HEADER -->
+   
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h2>Edit Course: <?= htmlspecialchars($course->course_name) ?></h2>
 
@@ -44,7 +42,7 @@
         </div>
     </div>
 
-    <!-- FLASH MESSAGE -->
+    
     <?php if ($this->session->flashdata('success')): ?>
         <div class="success">
             <?= $this->session->flashdata('success') ?>

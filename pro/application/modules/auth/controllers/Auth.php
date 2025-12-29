@@ -3,60 +3,88 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Auth extends MX_Controller {
 
-    /* ================= LOGIN ================= */
+    
    
     public function login()
     {
         $this->load->view('login');
     }
 
-    public function login_check()
-    {
-        $email    = $this->input->post('email');
-        $password = md5($this->input->post('password'));
+   public function login_check()
+{
+    $email    = $this->input->post('email');
+    $password = md5($this->input->post('password'));
 
-        $user = $this->db->get_where('users', [
-            'email'    => $email,
-            'password' => $password,
-            'status'   => 1
-        ])->row();
+    // 🔹 store email so it doesn't vanish
+    $this->session->set_flashdata('old_email', $email);
 
-        if (!$user) {
-            $data['error'] = 'Invalid login or not approved';
-            $this->load->view('login', $data);
+    // 1️⃣ Check email exists
+    $user = $this->db
+        ->where('email', $email)
+        ->get('users')
+        ->row();
+
+    if (!$user) {
+        $this->session->set_flashdata(
+            'email_error',
+            'Email not found'
+        );
+        redirect('auth/login');
+        return;
+    }
+
+    // 2️⃣ Check password
+    if ($user->password !== $password) {
+        $this->session->set_flashdata(
+            'password_error',
+            'Incorrect password'
+        );
+        redirect('auth/login');
+        return;
+    }
+
+    // 3️⃣ Check approval / status
+    if ($user->status != 1) {
+        $this->session->set_flashdata(
+            'login_error',
+            'Your account is not approved yet'
+        );
+        redirect('auth/login');
+        return;
+    }
+
+    // 4️⃣ Intern expiry check
+    if ($user->role === 'intern' && !empty($user->intern_end_date)) {
+        if (date('Y-m-d') > $user->intern_end_date) {
+            $this->session->set_flashdata(
+                'login_error',
+                'Your internship period has expired'
+            );
+            redirect('auth/login');
             return;
-        }
-
-        // ✅ INTERN EXPIRY CHECK (ONLY IF COLUMN EXISTS)
-        if ($user->role === 'intern' && !empty($user->intern_end_date)) {
-            if (date('Y-m-d') > $user->intern_end_date) {
-                $data['error'] = 'Your internship period has expired.';
-                $this->load->view('login', $data);
-                return;
-            }
-        }
-
-        // ✅ SAVE SESSION
-        $this->session->set_userdata([
-            'user_id'   => $user->user_id,
-            'user_name' => $user->user_name,
-            'role'      => $user->role,
-            'department'=> $user->department,
-            'logged_in' => TRUE
-        ]);
-        $this->db->where('user_id', $user->user_id)
-         ->update('users', ['last_login' => date('Y-m-d H:i:s')]);
-
-
-        // ✅ REDIRECT BASED ON ROLE
-        if ($user->role === 'master_admin' || $user->role === 'dept_head') {
-            redirect('admin/dashboard');
-        } else {
-            redirect('user/dashboard');
         }
     }
 
-    /* ================= REGISTER ================= */
+    // ✅ LOGIN SUCCESS
+    $this->session->set_userdata([
+        'user_id'    => $user->user_id,
+        'user_name'  => $user->user_name,
+        'role'       => $user->role,
+        'department' => $user->department,
+        'logged_in'  => TRUE
+    ]);
+
+    // Update last login
+    $this->db->where('user_id', $user->user_id)
+             ->update('users', ['last_login' => date('Y-m-d H:i:s')]);
+
+    // Redirect
+    if ($user->role === 'master_admin' || $user->role === 'dept_head') {
+        redirect('admin/dashboard');
+    } else {
+        redirect('user/dashboard');
+    }
+}
 
     public function register()
     {
@@ -95,7 +123,7 @@ class Auth extends MX_Controller {
         $role       = $this->input->post('role');
         $department = $this->input->post('department');
 
-        // 🔍 FIND DEPARTMENT HEAD
+       
         $dept_head = $this->db
             ->where('role', 'dept_head')
             ->where('department', $department)
@@ -116,7 +144,7 @@ class Auth extends MX_Controller {
             'status'     => 'Pending',
             'created_at' => date('Y-m-d H:i:s'),
 
-            // ✅ CORE APPROVAL LOGIC
+            //  APPROVAL LOGIC
             'approve_by' => ($role === 'dept_head') ? 'master' : 'department',
             'department_head_id' => ($role === 'dept_head')
                                     ? NULL
@@ -131,7 +159,7 @@ class Auth extends MX_Controller {
         redirect('auth/waiting');
     }
 
-    /* ================= WAITING PAGE ================= */
+    
 
     public function waiting()
     {
@@ -151,7 +179,6 @@ class Auth extends MX_Controller {
         $this->load->view('waiting', $data);
     }
 
-    /* ================= FORGOT PASSWORD ================= */
 
     public function forgot_password()
     {

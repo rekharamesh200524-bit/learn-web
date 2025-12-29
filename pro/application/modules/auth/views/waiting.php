@@ -22,7 +22,6 @@
                 ✅ Your request has been approved.
             </p>
 
-            <!-- LOGIN BUTTON (ONLY AFTER APPROVAL) -->
             <div style="text-align:center; margin-top:15px;">
                 <a href="<?= base_url('index.php/auth/login') ?>" class="btn">
                     🔐 Go to Login
