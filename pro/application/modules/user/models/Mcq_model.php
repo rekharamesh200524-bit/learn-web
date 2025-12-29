@@ -43,5 +43,16 @@ public function get_questions_by_day($course_id, $day_no)
         ->result();
 }
 
+public function get_total_mcq_days($course_id)
+{
+    return $this->db
+        ->select('MAX(day_no) as total_days')
+        ->where('course_id', $course_id)
+        ->get('mcq_questions')
+        ->row()
+        ->total_days ?? 0;
+}
+
+
 
 }

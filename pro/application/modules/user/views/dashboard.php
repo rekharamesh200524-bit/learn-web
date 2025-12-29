@@ -76,13 +76,16 @@
 
         <div class="cards">
 
-            <?php if (!empty($courses)): ?>
+            <?php
+            //echo "<pre>"; print_r($courses); exit;
+            if (!empty($courses)): ?>
                 <?php foreach ($courses as $course): ?>
 
                     <?php
                     $is_completed = in_array($course->course_id, $completed_course_ids ?? []);
                     $has_active   = !empty($in_progress);
                     $is_current   = $has_active && $in_progress->course_id == $course->course_id;
+
                     ?>
 
                     <div class="course-box">

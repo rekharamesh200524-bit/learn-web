@@ -53,7 +53,7 @@ class User extends MX_Controller {
             'grouped_lessons' => $this->User_model->get_grouped_lessons($course_id, $effective_days),
             'current_day'     => $current_day
         ];
-
+       // echo "<pre>"; print_r($data); exit;
         $this->load->view('course_page', $data);
     }
 
@@ -104,6 +104,7 @@ class User extends MX_Controller {
 
         $data = [
             'course_id'   => $course_id,
+            'mcq_day'     => $current_day,
             'current_day' => $current_day,
             'questions'   => $this->Mcq_model->get_questions_by_day($course_id, $current_day)
         ];
@@ -117,15 +118,20 @@ class User extends MX_Controller {
     {
         $user_id = $this->session->userdata('user_id');
 
+       // echo "<pre>"; print_r($user_id);// exit;
         $progress = $this->User_model->get_course_progress($user_id, $course_id);
+       // echo "<pre>progress"; print_r($progress);
+ 
+        
         if (!$progress) {
             redirect('user/course/'.$course_id);
             return;
         }
 
         $current_day = (int)$progress->current_day;
-
+       // echo "<pre>current_day"; print_r($current_day);
         $questions = $this->Mcq_model->get_questions_by_day($course_id, $current_day);
+       //  echo "<pre>questions"; print_r($questions);
         $answers   = $this->input->post('answers');
 
         if (!is_array($answers) || count($answers) < count($questions)) {
@@ -148,7 +154,7 @@ class User extends MX_Controller {
         $score = round(($correct / $total) * 100, 2);
 
         $remark = ($score >= 80) ? 'Excellent' : (($score >= 60) ? 'Pass' : 'Fail');
-
+       //  echo "<pre>remark"; print_r($remark);
         $this->db->insert('mcq_results', [
             'user_id'         => $user_id,
             'course_id'       => $course_id,
@@ -163,23 +169,37 @@ class User extends MX_Controller {
             redirect('user/result/'.$course_id);
             return;
         }
+        $max_days = $this->User_model->get_course_max_days($course_id);
 
-        $effective_days = $this->User_model->get_effective_course_days($user_id);
 
-        if ($current_day < $effective_days) {
-            $this->db->where('id', $progress->id)
-                     ->update('course_progress', ['current_day' => $current_day + 1]);
-        } else {
-           $this->db
-    ->where('user_id', $user_id)
-    ->where('course_id', $course_id)
-    ->update('course_progress', [
-        'completed'     => 1,
-        'mcq_completed' => 1,
-        'current_day'   => $effective_days
-    ]);
+       // echo $max_days;
+//    echo "<pre>max_days"; print_r($max_days);
+//    echo "<pre>current_day2"; print_r($current_day);// exit;
+// ✅ COMPLETE COURSE ONLY ON LAST DAY
+if ($current_day >= $max_days) {
 
-        }
+    $this->db
+        ->where('user_id', $user_id)
+        ->where('course_id', $course_id)
+        ->update('course_progress', [
+            'lesson_completed' => 1,
+            'mcq_completed'    => 1,
+            'completed'        => 1,
+            'current_day'      => $max_days
+        ]);
+
+} else {
+
+    // ➕ Move to next day
+    $this->db
+        ->where('user_id', $user_id)
+        ->where('course_id', $course_id)
+        ->update('course_progress', [
+            'current_day' => $current_day + 1
+        ]);
+}
+
+
 
         redirect('user/result/'.$course_id);
     }

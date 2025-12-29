@@ -16,6 +16,7 @@ class User_model extends CI_Model {
             ->order_by('course_order', 'ASC')
             ->get('courses')
             ->result();
+        
     }
 
     /* =============================
@@ -41,40 +42,46 @@ class User_model extends CI_Model {
         ->row();
 }
 
+
 public function start_course($user_id, $course_id)
 {
-    // 🔒 Check if ANOTHER course is still active
+    // Block only if ANOTHER course is active
     $active = $this->db
         ->where('user_id', $user_id)
         ->where('completed', 0)
-        ->where('course_id !=', $course_id) // ✅ IMPORTANT
+        ->where('course_id !=', $course_id)
+       
         ->get('course_progress')
         ->row();
 
     if ($active) {
-        return false; // another course still running
+        return false;
     }
 
-    // 🔁 If this course already exists and is completed → allow reopen
-    $existing = $this->db
+    // If course already completed → allow access
+    $completed = $this->db
         ->where('user_id', $user_id)
         ->where('course_id', $course_id)
+        ->where('completed', 1)
         ->get('course_progress')
         ->row();
 
-    if ($existing) {
+    if ($completed) {
         return true;
     }
 
-    // ✅ Start new course
+    // Start new course
     return $this->db->insert('course_progress', [
-        'user_id'        => $user_id,
-        'course_id'      => $course_id,
-        'current_day'    => 1,
-        'completed'      => 0,
-        'mcq_completed'  => 0
+        'user_id'       => $user_id,
+        'course_id'     => $course_id,
+        'current_day'   => 1,
+        
+        'completed'     => 0,
+        'mcq_completed' => 0
     ]);
 }
+
+
 
 
 
@@ -133,11 +140,17 @@ public function start_course($user_id, $course_id)
     }
    public function get_course_progress($user_id, $course_id)
 {
+      //  echo $this->db->last_query(); exit;
+    //   echo"<pre>"; print_r($user_id);
+    //   echo"<pre>"; print_r($course_id);
+    //    exit;
+
     return $this->db
         ->where('user_id', $user_id)
         ->where('course_id', $course_id)
         ->get('course_progress')
         ->row();
+    
 }
 
 
@@ -203,6 +216,17 @@ public function get_grouped_lessons($course_id, $effective_days)
 
     return $grouped;
 }
+public function get_course_max_days($course_id)
+{
+    $row = $this->db
+        ->select_max('day_no')
+        ->where('course_id', $course_id)
+        ->get('course_lessons')
+        ->row();
+
+    return $row && $row->day_no ? (int)$row->day_no : 1;
+}
+
 
    
 
