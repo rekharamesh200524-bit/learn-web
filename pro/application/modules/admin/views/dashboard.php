@@ -85,7 +85,7 @@
                     <th>Department</th>
                     <th>Status</th>
                     <th>Last Login</th>
-                    <th>Progress</th>
+                    
                 </tr>
 
                 <?php if (!empty($all_users)): ?>
@@ -97,7 +97,7 @@
                             <td><?= $u->department ?: '-' ?></td>
                             <td><?= $u->status ? 'Active' : 'Inactive' ?></td>
                             <td><?= $u->last_login ?: 'Never' ?></td>
-                            <td>0%</td>
+                            
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -110,57 +110,67 @@
 
     <?php endif; ?>
     <!-- ================= END MASTER ADMIN VIEW ================= -->
+     
 
-    <!-- ================= REQUESTS TABLE ================= -->
-    <div class="section">
-        <h3>User Registration Requests</h3>
+     
 
-        <table>
-            <tr>
-                <th>User Name</th>
-                <th>Email</th>
-                <th>Mobile</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th>Intern Duration</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
+    <?php if ($this->session->userdata('role') === 'dept_head'): ?>
 
-            <?php if (!empty($requests)): ?>
-                <?php foreach ($requests as $row): ?>
-                    <tr>
-                        <td><?= $row->user_name ?></td>
-                        <td><?= $row->email ?></td>
-                        <td><?= $row->mobile ?></td>
-                        <td><?= $row->department ?></td>
-                        <td><?= $row->role ?></td>
-                        <td><?= ($row->role === 'intern') ? $row->intern_duration : '-' ?></td>
-                        <td><?= $row->status ?></td>
-                        <td>
-                            <?php if ($row->status === 'Pending'): ?>
-                                <a href="<?= base_url('index.php/admin/approve/'.$row->request_id) ?>" class="btn">
-                                    Approve
-                                </a>
+<!-- ================= REQUESTS TABLE ================= -->
+<div class="section">
+        
+    <h3>User Registration Requests</h3>
 
-                                <a href="<?= base_url('index.php/admin/reject/'.$row->request_id) ?>"
-                                   class="btn"
-                                   style="background:#dc3545; margin-left:5px;"
-                                   onclick="return confirm('Are you sure you want to reject this user?')">
-                                    Reject
-                                </a>
-                            <?php else: ?>
-                                <?= $row->status ?>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
+    <table>
+        <tr>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>Mobile</th>
+            <th>Department</th>
+            <th>Role</th>
+            <th>Intern Duration</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        <?php if (!empty($requests)): ?>
+            <?php foreach ($requests as $row): ?>
                 <tr>
-                    <td colspan="8">No requests found</td>
+                    <td><?= $row->user_name ?></td>
+                    <td><?= $row->email ?></td>
+                    <td><?= $row->mobile ?></td>
+                    <td><?= $row->department ?></td>
+                    <td><?= $row->role ?></td>
+                    <td><?= ($row->role === 'intern') ? $row->intern_duration : '-' ?></td>
+                    <td><?= $row->status ?></td>
+                    <td>
+                        <?php if ($row->status === 'Pending'): ?>
+                            <a href="<?= base_url('index.php/admin/approve/'.$row->request_id) ?>" class="btn">
+                                Approve
+                            </a>
+
+                            <a href="<?= base_url('index.php/admin/reject/'.$row->request_id) ?>"
+                               class="btn"
+                               style="background:#dc3545; margin-left:5px;"
+                               onclick="return confirm('Are you sure you want to reject this user?')">
+                                Reject
+                            </a>
+                        <?php else: ?>
+                            <?= $row->status ?>
+                        <?php endif; ?>
+                    </td>
                 </tr>
-            <?php endif; ?>
-        </table>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="8">No requests found</td>
+            </tr>
+        <?php endif; ?>
+    </table>
+</div>
+
+<?php endif; ?>
+
     </div>
 
 </div>

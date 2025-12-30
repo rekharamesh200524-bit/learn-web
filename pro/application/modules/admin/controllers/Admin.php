@@ -50,10 +50,11 @@ class Admin extends MX_Controller {
                 ->where('DATE(last_login)', date('Y-m-d'))
                 ->count_all_results('users');
 
-            $data['all_users'] = $this->db
-                ->select('user_name, email, role, department, status, last_login, intern_duration')
-                ->get('users')
-                ->result();
+           $data['all_users'] = $this->db
+    ->select('user_name, email, role, department, status, last_login, intern_duration')
+    ->where('role !=', 'master_admin')   // 🔥 EXCLUDE MASTER ADMIN
+    ->get('users')
+    ->result();
 
             
             $data['role_counts'] = $this->db

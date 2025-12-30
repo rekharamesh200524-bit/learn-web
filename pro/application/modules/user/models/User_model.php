@@ -100,9 +100,9 @@ public function start_course($user_id, $course_id)
   
 
 
-    /* =============================
+    /* 
        FILES (UPLOAD SYSTEM)
-    ============================= */
+    */
 
     public function get_user_files($user_id)
     {

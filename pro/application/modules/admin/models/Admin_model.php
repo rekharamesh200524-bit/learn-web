@@ -115,6 +115,43 @@ class Admin_model extends CI_Model {
         ORDER BY u.user_name ASC
     ", [$department])->result();
 }
+public function get_user_progress_summary()
+{
+    return $this->db->query("
+        SELECT 
+            u.user_id,
+            u.user_name,
+            u.email,
+            u.role,
+            u.department,
+            u.status,
+            u.last_login,
+
+            COUNT(DISTINCT c.course_id) AS total_courses,
+            COUNT(DISTINCT cp.course_id) AS completed_courses,
+
+            IF(
+                COUNT(DISTINCT c.course_id) = 0,
+                0,
+                ROUND(
+                    (COUNT(DISTINCT cp.course_id) / COUNT(DISTINCT c.course_id)) * 100
+                )
+            ) AS progress_percentage
+
+        FROM users u
+        LEFT JOIN courses c 
+            ON c.department = u.department
+            AND c.status = 1
+
+        LEFT JOIN course_progress cp 
+            ON cp.user_id = u.user_id
+            AND cp.completed = 1
+
+        WHERE u.role != 'master_admin'
+
+        GROUP BY u.user_id
+    ")->result();
+}
 
 
 }
